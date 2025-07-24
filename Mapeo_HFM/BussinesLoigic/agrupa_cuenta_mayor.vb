@@ -236,7 +236,7 @@ Public Class agrupa_cuenta_mayor
             ' Generamos la llave a partir de los 3 campos
             Dim key = String.Join("|", {
             r("ICIA_SIFIC").ToString(),
-            r("cuenta_mayor_hfm").ToString(),
+            r("cuenta_oracle").ToString(),         'r("cuenta_mayor_hfm").ToString(),    Se comenta para agrupar no por cuenta mayor si no cuenta Oracle 
             r("deudor_acreedor_2").ToString()
         })
 
