@@ -431,13 +431,15 @@ ORDER BY sociedad;
 
 
         'Si todo bien pinta en color 
-        flecha_2.Image = originalImage_flecha_2
+        flecha_3.Image = originalImage_flecha_3
 
         procesa_2.Cursor = Cursors.Hand
         procesa_2.Enabled = True
         previsualiza_4.Enabled = True
         previsualiza_4.Image = originalImage_previsualiza_4
 
+        txt_sific.Enabled = True
+        txt_sific.Cursor = Cursors.Hand
 
 
     End Sub
@@ -501,8 +503,8 @@ ORDER BY sociedad;
         'Si todo bien pinta en color 
         flecha_2_1.Image = originalImage_flecha_2_1
 
-        'procesa_1.Cursor = Cursors.Hand
-        'procesa_1.Enabled = True
+        txt_sific.Cursor = Cursors.Hand
+        txt_sific.Enabled = True
 
 
 
@@ -511,7 +513,48 @@ ORDER BY sociedad;
 
     End Sub
 
-    Private Sub txt_sific_Click(sender As Object, e As EventArgs) Handles txt_sific.Click
+    Private Async Sub txt_sific_Click(sender As Object, e As EventArgs) Handles txt_sific.Click
 
+
+        ' 1) Arranca el parpadeo
+        txt_sific.Image = originalImage_txt_sific
+        IniciarParpadeoImagen(txt_sific)
+
+
+        Try
+            Me.Cursor = Cursors.WaitCursor
+            ' 2) Ejecuta tu operación en segundo plano
+            Await Task.Run(Sub()
+
+                               'Inicia rutina de carga complemento operaciones IC
+                               Dim transformer As New LayOutTransformerICB(rutaSQLite_A)
+
+                               transformer.Transform()
+                               MessageBox.Show("Datos transformados OK.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information)
+
+
+                           End Sub)
+
+
+        Catch ex As Exception
+            MessageBox.Show("Error: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            ' 3) Detiene el parpadeo (restaura la imagen original)
+            DetenerParpadeo()
+            Me.Cursor = Cursors.Default
+        End Try
+
+        'Si todo bien pinta en color 
+        txt_sific.Image = originalImage_txt_sific
+
+        previsualiza_5.Enabled = True
+        previsualiza_5.Image = originalImage_previsualiza_5
+
+    End Sub
+
+    Private Sub previsualiza_5_Click(sender As Object, e As EventArgs) Handles previsualiza_5.Click
+        If previsualiza_5.Enabled = True Then
+            ExcelDbExporter.ExportToExcel(rutaSQLite_A, "lay_out")
+        End If
     End Sub
 End Class

@@ -67,28 +67,42 @@ Public Class agrupa_cuenta_mayor
             ' ——————————————————————————————
             Dim dtTemp As New DataTable()
             Using da As New SQLiteDataAdapter(
-    "SELECT
-        s.sociedad,
-        s.saldo_acum,
-        s.periodo,
-        s.ejercicio,
-        s.cuenta_oracle,
-        s.cuenta_mayor_hfm,
-        s.descripcion_cuenta_sific,
-        s.deudor_acreedor_2,
+                            "SELECT
+                            s.sociedad,
+                            s.saldo_acum,
+                            s.periodo,
+                            s.ejercicio,
+                            s.numero_cuenta    AS cuenta_sap,
+                            s.cuenta_oracle,
+                            s.cuenta_mayor_hfm,
+                            s.descripcion_cuenta_sific,
+                            s.deudor_acreedor_2,
 
-        -- Aquí le decimos que nos devuelva el mismo valor
-        -- con dos alias distintos: uno para 'grupo' y otro
-        -- para 'ICIA_SIFIC'
-        g.GRUPO AS grupo,
-        g.GRUPO AS ICIA_SIFIC
+                            -- Mapeo de sociedad → grupo principal
+                            g1.GRUPO           AS grupo,
 
-     FROM t_in_sap AS s
-     JOIN GL_ICP_Grupos AS g
-       ON ltrim(s.sociedad,'0') = ltrim(g.GL_ICP,'0')
-     WHERE (@grupo = 'TODO') OR (g.GRUPO = @grupo)
-     ORDER BY s.periodo, s.sociedad;",
-    conn)
+                            -- Mapeo de deudor_acreedor_2 → grupo secundario (ICIA_SIFIC)
+                            g2.GRUPO           AS ICIA_SIFIC
+
+                        FROM t_in_sap AS s
+
+                        -- Join para mapa de sociedad
+                        JOIN GL_ICP_Grupos AS g1
+                          ON LTRIM(s.sociedad,      '0') = LTRIM(g1.GL_ICP, '0')
+
+                        -- Join adicional para mapa de deudor_acreedor_2
+                        JOIN GL_ICP_Grupos AS g2
+                          ON LTRIM(s.deudor_acreedor_2, '0') = LTRIM(g2.GL_ICP, '0')
+
+                        WHERE
+                            (@grupo = 'TODO')
+                            OR (g1.GRUPO = @grupo)
+
+                        ORDER BY
+                            s.periodo,
+                            s.sociedad;
+                        ",
+                                conn)
                 da.SelectCommand.Parameters.AddWithValue("@grupo", grupoSel)
                 da.Fill(dtTemp)
             End Using
@@ -206,8 +220,7 @@ Public Class agrupa_cuenta_mayor
             CrearTablaSalida(conn)
             InsertarResultados(conn, resultado)
 
-            MsgBox("Proceso completado correctamente.",
-                   MsgBoxStyle.Information, "Éxito")
+            'MsgBox("Proceso completado correctamente.",MsgBoxStyle.Information, "Éxito")
         End Using
     End Sub
 
@@ -239,13 +252,14 @@ Public Class agrupa_cuenta_mayor
                 nr("saldo_acum") = CDbl(r("saldo_acum"))
                 nr("periodo") = r("periodo")
                 nr("ejercicio") = r("ejercicio")
+                nr("cuenta_sap") = r("cuenta_sap")
                 nr("cuenta_oracle") = r("cuenta_oracle")
                 nr("cuenta_mayor_hfm") = r("cuenta_mayor_hfm")
                 nr("descripcion_cuenta_sific") = r("descripcion_cuenta_sific")
                 nr("deudor_acreedor_2") = r("deudor_acreedor_2")
                 nr("ICIA_SIFIC") = r("ICIA_SIFIC")
                 nr("periodo_SIFIC") = r("periodo_SIFIC")
-
+                nr("periodo_SIFIC") = r("periodo_SIFIC")
                 mapa(key) = nr
                 salida.Add(nr)
             End If
@@ -267,6 +281,7 @@ Public Class agrupa_cuenta_mayor
                   saldo_acum REAL,
                   periodo INTEGER,
                   ejercicio INTEGER,
+                  cuenta_sap TEXT,
                   cuenta_oracle TEXT,
                   cuenta_mayor_hfm TEXT,
                   descripcion_cuenta_sific TEXT,
@@ -284,17 +299,18 @@ Public Class agrupa_cuenta_mayor
                 cmd.CommandText = "
                     INSERT INTO pre_lay_out (
                       sociedad, grupo, saldo_acum, periodo, ejercicio,
-                      cuenta_oracle, cuenta_mayor_hfm, descripcion_cuenta_sific,
+                      cuenta_sap,cuenta_oracle, cuenta_mayor_hfm, descripcion_cuenta_sific,
                       deudor_acreedor_2, ICIA_SIFIC, periodo_SIFIC
                     ) VALUES (
                       @soc, @grp, @sal, @per, @eje,
-                      @co, @cm, @desc, @deu, @icia, @perS
+                      @cs, @co, @cm, @desc, @deu, @icia, @perS
                     );"
                 cmd.Parameters.Add("@soc", DbType.String)
                 cmd.Parameters.Add("@grp", DbType.String)
                 cmd.Parameters.Add("@sal", DbType.Double)
                 cmd.Parameters.Add("@per", DbType.Int32)
                 cmd.Parameters.Add("@eje", DbType.Int32)
+                cmd.Parameters.Add("@cs", DbType.String)
                 cmd.Parameters.Add("@co", DbType.String)
                 cmd.Parameters.Add("@cm", DbType.String)
                 cmd.Parameters.Add("@desc", DbType.String)
@@ -308,6 +324,7 @@ Public Class agrupa_cuenta_mayor
                     cmd.Parameters("@sal").Value = r("saldo_acum")
                     cmd.Parameters("@per").Value = r("periodo")
                     cmd.Parameters("@eje").Value = r("ejercicio")
+                    cmd.Parameters("@cs").Value = r("cuenta_sap")
                     cmd.Parameters("@co").Value = r("cuenta_oracle")
                     cmd.Parameters("@cm").Value = r("cuenta_mayor_hfm")
                     cmd.Parameters("@desc").Value = r("descripcion_cuenta_sific")

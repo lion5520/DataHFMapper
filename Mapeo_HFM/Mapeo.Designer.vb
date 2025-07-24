@@ -153,9 +153,10 @@ Partial Class Mapeo
         Me.lbl_conversion_icp.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.lbl_conversion_icp.Location = New System.Drawing.Point(228, 384)
         Me.lbl_conversion_icp.Name = "lbl_conversion_icp"
-        Me.lbl_conversion_icp.Size = New System.Drawing.Size(200, 16)
+        Me.lbl_conversion_icp.Size = New System.Drawing.Size(310, 48)
         Me.lbl_conversion_icp.TabIndex = 6
-        Me.lbl_conversion_icp.Text = "Conversion de ICP ORACLE"
+        Me.lbl_conversion_icp.Text = "Conversion de ICP ORACLE" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Integracion Operaciones Complentarias ICP" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Integracion " &
+    "de Polizas"
         Me.lbl_conversion_icp.Visible = False
         '
         'Label3
@@ -334,7 +335,7 @@ Partial Class Mapeo
         '
         'previsualiza_5
         '
-        Me.previsualiza_5.Cursor = System.Windows.Forms.Cursors.Default
+        Me.previsualiza_5.Cursor = System.Windows.Forms.Cursors.Hand
         Me.previsualiza_5.Image = CType(resources.GetObject("previsualiza_5.Image"), System.Drawing.Image)
         Me.previsualiza_5.Location = New System.Drawing.Point(1192, 308)
         Me.previsualiza_5.Name = "previsualiza_5"

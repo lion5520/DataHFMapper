@@ -1,6 +1,7 @@
 ﻿Imports System
 Imports System.Data.SQLite
 Imports System.Runtime.InteropServices
+Imports Microsoft.Office.Interop
 Imports Microsoft.Office.Interop.Excel
 
 Public Class Procesa_Entrada_SAP
@@ -12,7 +13,9 @@ Public Class Procesa_Entrada_SAP
     ''' <param name="rutaExcel">Ruta al .xlsx de entrada</param>
     ''' <param name="rutaSqlite">Ruta al .sqlite donde insertar</param>
     Public Shared Sub Ejecutar(rutaExcel As String, rutaSqlite As String)
-        Const sheetName As String = "Sheet1"
+
+        Dim sheetName As String = "Sheet1"           ' Nombre buscado
+
         Dim connString As String = $"Data Source={rutaSqlite};Version=3;"
         Dim conn As SQLiteConnection = Nothing
         Dim tx As SQLiteTransaction = Nothing
@@ -43,6 +46,10 @@ Public Class Procesa_Entrada_SAP
             xlApp = New Application With {.Visible = False, .DisplayAlerts = False}
             wb = xlApp.Workbooks.Open(rutaExcel, ReadOnly:=True)
 
+            If wb.Worksheets.Count = 0 Then
+                Throw New InvalidOperationException("El libro de Excel no contiene hojas.")
+            End If
+
             ' Intentar hoja "base"
             Dim found As Boolean = False
             For Each sht As Worksheet In wb.Worksheets
@@ -53,7 +60,8 @@ Public Class Procesa_Entrada_SAP
                 End If
             Next
             If Not found Then
-                Throw New Exception($"No se encontró hoja '{sheetName}'.")
+                ws = CType(wb.Worksheets(1), Excel.Worksheet)
+                'Throw New Exception($"No se encontró hoja '{sheetName}'.")
             End If
 
             ' 4) Detectar última fila con datos en columna A
