@@ -8,7 +8,7 @@ Imports OfficeOpenXml
 
 Public Class Mapeo
 
-    Private rutaSQLite_A As String = "C:\Users\Lion\Desktop\IZZI_DAT\mapeo_sap_sific.sqlite"
+    Private rutaSQLite_A As String = "C:\Users\mario\Outliers\IZZI\Pruebas\mapeo_sap_sific.sqlite"
     Private rutaSQLite As String = "Y:\top_variacion.sqlite"
     Private originalImage_SAP_IN As Image
     Private originalImage_procesa_1 As Image
