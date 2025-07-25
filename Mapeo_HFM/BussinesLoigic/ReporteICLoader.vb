@@ -66,6 +66,7 @@ Public Class ReporteICLoader
             Dim colICSap As Integer = -1
             Dim colSociedad As Integer = -1
             Dim colCuenta As Integer = -1
+            Dim colCuentaOracle As Integer = -1
             Dim colSaldo As Integer = -1
 
             For r As Integer = 1 To 10
@@ -76,6 +77,7 @@ Public Class ReporteICLoader
                             Case "IC SAP" : colICSap = c
                             Case "SOCIEDAD SAP" : colSociedad = c
                             Case "CUENTA SAP" : colCuenta = c
+                            Case "CUENTA ORACLE" : colCuentaOracle = c
                             Case "SALDO" : colSaldo = c
                         End Select
                     End If
@@ -91,7 +93,7 @@ Public Class ReporteICLoader
                 wb.Close(False) : xlApp.Quit()
                 Throw New InvalidOperationException(
                     "No se encontró la fila de encabezados con 'IC SAP', " &
-                    "'SOCIEDAD SAP', 'CUENTA SAP' y 'SALDO'.")
+                    "'SOCIEDAD SAP', 'CUENTA SAP', 'CUENTA ORACLE' y 'SALDO'.")
             End If
 
             ' 6) Recorrer filas posteriores hasta bloque vacío
@@ -100,6 +102,7 @@ Public Class ReporteICLoader
                 Dim vIC = ws.Cells(fila, colICSap).Value2
                 Dim vSoc = ws.Cells(fila, colSociedad).Value2
                 Dim vCta = ws.Cells(fila, colCuenta).Value2
+                Dim vCtaOra = ws.Cells(fila, colCuentaOracle).Value2
                 Dim vSld = ws.Cells(fila, colSaldo).Value2
 
                 ' Si todas son Nothing, fin de datos
@@ -112,6 +115,7 @@ Public Class ReporteICLoader
                 Dim icsap As String = If(vIC?.ToString().Trim(), "")
                 Dim sociedad As String = If(vSoc?.ToString().Trim(), "")
                 Dim cuenta As String = If(vCta?.ToString().Trim(), "")
+                Dim cuentaOracle As String = If(vCtaOra?.ToString().Trim(), "")
                 Dim saldo As Double
                 If vSld IsNot Nothing AndAlso Not Double.TryParse(vSld.ToString(), saldo) Then
                     saldo = 0
@@ -121,11 +125,12 @@ Public Class ReporteICLoader
                 If sociedad <> "" AndAlso cuenta <> "" Then
                     Using cmdIns As New SQLiteCommand(conn)
                         cmdIns.CommandText =
-                            "INSERT INTO reporte_IC (ICSap, SociedadSap, CuentaSap, Saldo) " &
-                            "VALUES (@ic, @soc, @cta, @sld);"
+                            "INSERT INTO reporte_IC (ICSap, SociedadSap, CuentaSap, Cuenta_Parte_Relacionada, Saldo) " &
+                            "VALUES (@ic, @soc, @cta, @vCtaOra, @sld);"
                         cmdIns.Parameters.AddWithValue("@ic", icsap)
                         cmdIns.Parameters.AddWithValue("@soc", sociedad)
                         cmdIns.Parameters.AddWithValue("@cta", cuenta)
+                        cmdIns.Parameters.AddWithValue("@vCtaOra", cuentaOracle)
                         cmdIns.Parameters.AddWithValue("@sld", saldo)
                         cmdIns.ExecuteNonQuery()
                     End Using
