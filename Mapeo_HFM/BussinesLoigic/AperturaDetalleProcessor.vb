@@ -151,7 +151,11 @@ WHERE LTRIM(sociedad,'0') = @soc
                             End Using
                         End Using
 
+                        ' Descripción base para el nuevo renglón
                         Dim descripcion As String = $"Reclasificación {detalle.Field(Of String)("SociedadSap")}-{ctaOra}"
+
+                        ' Si no se encontró un par con este IC en t_in_sap, se
+                        ' agrega la advertencia solicitada
                         If dtExist.Rows.Count = 0 Then
                             descripcion &= " Falta eliminar el saldo cuenta complementaria"
                         End If
