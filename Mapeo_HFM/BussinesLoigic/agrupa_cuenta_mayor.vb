@@ -181,7 +181,8 @@ Public Class agrupa_cuenta_mayor
             ' ——————————————————————————————
             ' 5) Filtrar por período y agregar periodo_SIFIC
             ' ——————————————————————————————
-            periodoProc = If(periodoInput = "TODO", listaPeriodos.Max(), CInt(periodoInput))
+            ' periodoProc ya contiene el número de período seleccionado en el
+            ' bloque anterior. Solo obtenemos la abreviatura de mes.
             Dim mesAbrev As String = MonthName(periodoProc, True)
 
             Dim dtFiltrado As DataTable = dtTemp.Clone()
@@ -258,7 +259,6 @@ Public Class agrupa_cuenta_mayor
                 nr("descripcion_cuenta_sific") = r("descripcion_cuenta_sific")
                 nr("deudor_acreedor_2") = r("deudor_acreedor_2")
                 nr("ICIA_SIFIC") = r("ICIA_SIFIC")
-                nr("periodo_SIFIC") = r("periodo_SIFIC")
                 nr("periodo_SIFIC") = r("periodo_SIFIC")
                 mapa(key) = nr
                 salida.Add(nr)
