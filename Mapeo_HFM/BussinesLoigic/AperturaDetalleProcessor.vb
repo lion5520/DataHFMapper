@@ -152,6 +152,9 @@ WHERE LTRIM(sociedad,'0') = @soc
                         End Using
 
                         Dim descripcion As String = $"Reclasificación {detalle.Field(Of String)("SociedadSap")}-{ctaOra}"
+                        If dtExist.Rows.Count = 0 Then
+                            descripcion &= " Falta eliminar el saldo cuenta complementaria"
+                        End If
 
                         Dim colNames = String.Join(", ", cols)
                         Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
