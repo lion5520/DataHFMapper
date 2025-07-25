@@ -43,8 +43,8 @@ Public Class Procesa_CIA_ICP
                         "       g1.GRUPO AS CIA," &
                         "       g2.GRUPO AS ICP " &
                         "  FROM t_in_sap s " &
-                        "  LEFT JOIN GL_ICP_Grupos g1 ON s.sociedad         = g1.GL_ICP " &
-                        "  LEFT JOIN GL_ICP_Grupos g2 ON s.deudor_acreedor_2 = g2.GL_ICP;"
+                        "  LEFT JOIN GL_ICP_Grupos g1 ON LTRIM(s.sociedad, '0')         = LTRIM(g1.GL_ICP, '0') " &
+                        "  LEFT JOIN GL_ICP_Grupos g2 ON LTRIM(s.deudor_acreedor_2, '0') = LTRIM(g2.GL_ICP, '0');"
 
                     Dim dt As New DataTable()
                     Using cmdSel As New SQLiteCommand(sql, conn, tx)
