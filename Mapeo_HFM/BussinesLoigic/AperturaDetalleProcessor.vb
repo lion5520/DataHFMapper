@@ -42,10 +42,9 @@ SELECT
   r.Saldo                     AS Saldo,
   r.Cuenta_Parte_Relacionada  AS CtaOracle
 FROM reporte_IC AS r
-INNER JOIN t_in_sap AS t
-  ON LTRIM(t.sociedad,       '0') = LTRIM(r.SociedadSap, '0')
- AND t.numero_cuenta            = LTRIM(r.CuentaSap,   '0')
- AND t.deudor_acreedor_2       = '[ICP None]';
+JOIN t_in_sap AS t
+  ON LTRIM(t.sociedad, '0') = LTRIM(r.SociedadSap, '0')
+ AND t.numero_cuenta      = LTRIM(r.CuentaSap,   '0');
 "
                 Using cmdRep As New SQLiteCommand(sqlRep, conn, tran)
                     Using da As New SQLiteDataAdapter(cmdRep)
@@ -72,19 +71,15 @@ INNER JOIN t_in_sap AS t
                     ' Aquí sí existe la columna "Saldo"
                     Dim detalles = grupo.ToList()
 
-                    ' Verificar pares con saldos iguales
-                    Dim filasAInsertar As New List(Of DataRow)()
+                    ' Identificar si el grupo forma un par con saldos iguales
+                    Dim filasAInsertar As New List(Of DataRow)(detalles)
+                    Dim esParIgual As Boolean = False
                     If detalles.Count = 2 Then
                         Dim s1 = Math.Round(detalles(0).Field(Of Double)("Saldo"), 2)
                         Dim s2 = Math.Round(detalles(1).Field(Of Double)("Saldo"), 2)
-                        If s1 <> s2 Then
-                            filasAInsertar.AddRange(detalles)
-                        End If
-                    Else
-                        filasAInsertar.AddRange(detalles)
+                        esParIgual = (s1 = s2)
                     End If
 
-                    Dim totalSaldo = filasAInsertar.Sum(Function(r) r.Field(Of Double)("Saldo"))
 
                     ' ----------------------------------------------------
                     ' 3) Buscar registro padre en t_in_sap
@@ -104,14 +99,27 @@ WHERE LTRIM(sociedad,'0') = @soc
                             daPadre.Fill(dtPadre)
                         End Using
                     End Using
+                    Dim restarPadre As Boolean = True
+                    If dtPadre.Rows.Count = 0 Then
+                        ' Si no hay registro padre con [ICP None], tomamos cualquiera
+                        restarPadre = False
+                        Dim sqlAny As String = "SELECT rowid AS RowId, * FROM t_in_sap WHERE LTRIM(sociedad,'0') = @soc AND numero_cuenta = @cta LIMIT 1;"
+                        Using cmdAny As New SQLiteCommand(sqlAny, conn, tran)
+                            cmdAny.Parameters.AddWithValue("@soc", soc)
+                            cmdAny.Parameters.AddWithValue("@cta", cta)
+                            Using daAny As New SQLiteDataAdapter(cmdAny)
+                                daAny.Fill(dtPadre)
+                            End Using
+                        End Using
+                    End If
 
                     If dtPadre.Rows.Count = 0 Then
-                        ' No hay registro padre => saltamos este grupo
+                        ' Sin filas de referencia, no podemos insertar
                         Continue For
                     End If
 
                     Dim padre = dtPadre.Rows(0)
-                    Dim padreRowId = padre.Field(Of Long)("RowId")
+                    Dim padreRowId As Long = padre.Field(Of Long)("RowId")
 
                     ' ----------------------------------------------------
                     ' 4) Preparar inserción dinámica en t_in_sap
@@ -122,41 +130,81 @@ WHERE LTRIM(sociedad,'0') = @soc
                .ToList()
                     ' Ahora cols no contiene ni rowid ni id
 
-                    ' Insertamos un detalle por cada fila en el grupo
+                    ' Insertar detalle y actualizar/eliminar en función del par
+                    Dim ajustePadre As Double = 0
                     For Each detalle In filasAInsertar
+                        Dim ic As String = detalle.Field(Of String)("ICSap")
+                        Dim saldoDet As Double = Math.Round(detalle.Field(Of Double)("Saldo"), 2)
+                        Dim ctaOra As String = detalle.Field(Of String)("CtaOracle")
+
+                        If String.IsNullOrWhiteSpace(ctaOra) Then
+                            Continue For
+                        End If
+
+                        Dim dtExist As New DataTable()
+                        Using cmdE As New SQLiteCommand("SELECT rowid AS RowId, saldo_acum FROM t_in_sap WHERE LTRIM(sociedad,'0')=@soc AND numero_cuenta=@cta AND deudor_acreedor_2=@ic;", conn, tran)
+                            cmdE.Parameters.AddWithValue("@soc", soc)
+                            cmdE.Parameters.AddWithValue("@cta", cta)
+                            cmdE.Parameters.AddWithValue("@ic", ic)
+                            Using daE As New SQLiteDataAdapter(cmdE)
+                                daE.Fill(dtExist)
+                            End Using
+                        End Using
+
+                        Dim descripcion As String = $"Reclasificación {detalle.Field(Of String)("SociedadSap")}-{ctaOra}"
+
                         Dim colNames = String.Join(", ", cols)
                         Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
                         Dim sqlIns = $"INSERT INTO t_in_sap ({colNames}) VALUES ({paramNames});"
 
                         Using cmdIns As New SQLiteCommand(sqlIns, conn, tran)
-                            ' 4.1) Parámetros: copiamos todos los valores del padre
                             For Each col In cols
                                 cmdIns.Parameters.AddWithValue("@" & col, padre(col))
                             Next
-
-                            ' 4.2) Sobrescribimos los campos específicos
-                            cmdIns.Parameters("@" & "deudor_acreedor_2").Value = detalle.Field(Of String)("ICSap")
-                            cmdIns.Parameters("@" & "saldo_acum").Value = Math.Round(detalle.Field(Of Double)("Saldo"), 2)
-                            cmdIns.Parameters("@" & "cuenta_oracle").Value = detalle.Field(Of String)("CtaOracle")
-
+                            cmdIns.Parameters("@" & "deudor_acreedor_2").Value = ic
+                            cmdIns.Parameters("@" & "saldo_acum").Value = saldoDet
+                            cmdIns.Parameters("@" & "cuenta_oracle").Value = ctaOra
+                            cmdIns.Parameters("@" & "descripcion_cuenta_sific").Value = descripcion
                             cmdIns.ExecuteNonQuery()
                         End Using
+
+                        If dtExist.Rows.Count > 0 Then
+                            Dim ridExist As Long = dtExist.Rows(0).Field(Of Long)("RowId")
+                            If esParIgual Then
+                                Using cmdDel As New SQLiteCommand("DELETE FROM t_in_sap WHERE rowid=@rid;", conn, tran)
+                                    cmdDel.Parameters.AddWithValue("@rid", ridExist)
+                                    cmdDel.ExecuteNonQuery()
+                                End Using
+                            Else
+                                Dim saldoActual = Convert.ToDouble(dtExist.Rows(0)("saldo_acum"))
+                                Dim nuevoSaldoDet = Math.Round(saldoActual - saldoDet, 2)
+                                Using cmdUpdDet As New SQLiteCommand("UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
+                                    cmdUpdDet.Parameters.AddWithValue("@s", nuevoSaldoDet)
+                                    cmdUpdDet.Parameters.AddWithValue("@rid", ridExist)
+                                    cmdUpdDet.ExecuteNonQuery()
+                                End Using
+                            End If
+                        Else
+                            ajustePadre += saldoDet
+                        End If
                     Next
 
 
                     ' ----------------------------------------------------
-                    ' 5) Ajustar el registro padre restándole el total
+                    ' 5) Ajustar el registro padre restándole el total nuevo
                     ' ----------------------------------------------------
-                    Dim saldoOriginal = Convert.ToDouble(padre("saldo_acum"))
-                    Dim nuevoSaldo = Math.Round(saldoOriginal - totalSaldo, 2)
-                    Using cmdUpd As New SQLiteCommand("
+                    If restarPadre AndAlso ajustePadre > 0 Then
+                        Dim saldoOriginal = Convert.ToDouble(padre("saldo_acum"))
+                        Dim nuevoSaldo = Math.Round(saldoOriginal - ajustePadre, 2)
+                        Using cmdUpd As New SQLiteCommand("
 UPDATE t_in_sap
    SET saldo_acum = @ns
  WHERE rowid      = @rid;", conn, tran)
-                        cmdUpd.Parameters.AddWithValue("@ns", nuevoSaldo)
-                        cmdUpd.Parameters.AddWithValue("@rid", padreRowId)
-                        cmdUpd.ExecuteNonQuery()
-                    End Using
+                            cmdUpd.Parameters.AddWithValue("@ns", nuevoSaldo)
+                            cmdUpd.Parameters.AddWithValue("@rid", padreRowId)
+                            cmdUpd.ExecuteNonQuery()
+                        End Using
+                    End If
 
                 Next ' siguiente grupo
 
