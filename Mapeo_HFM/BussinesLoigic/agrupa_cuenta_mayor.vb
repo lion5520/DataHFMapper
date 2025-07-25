@@ -19,11 +19,16 @@ Public Class agrupa_cuenta_mayor
             ' ——————————————————————————————
             Dim gruposDisponibles As New List(Of String)
             Using cmd As New SQLiteCommand(
-                "SELECT DISTINCT g.GRUPO
-                   FROM t_in_sap AS s
-                   JOIN GL_ICP_Grupos AS g
-                     ON ltrim(s.sociedad, '0') = ltrim(g.GL_ICP, '0')
-                  ORDER BY g.GRUPO;", conn)
+                "SELECT DISTINCT g.GRUPO" & vbCrLf &
+                "  FROM t_in_sap AS s" & vbCrLf &
+                "  JOIN GL_ICP_Grupos AS g" & vbCrLf &
+                "    ON ltrim(s.sociedad, '0') = ltrim(g.GL_ICP, '0')" & vbCrLf &
+                "UNION" & vbCrLf &
+                "SELECT DISTINCT g.GRUPO" & vbCrLf &
+                "  FROM t_in_sap AS s" & vbCrLf &
+                "  JOIN GL_ICP_Grupos AS g" & vbCrLf &
+                "    ON ltrim(s.deudor_acreedor_2, '0') = ltrim(g.GL_ICP, '0')" & vbCrLf &
+                "ORDER BY GRUPO;", conn)
                 Using rdr = cmd.ExecuteReader()
                     While rdr.Read()
                         gruposDisponibles.Add(rdr.GetString(0).Trim())
