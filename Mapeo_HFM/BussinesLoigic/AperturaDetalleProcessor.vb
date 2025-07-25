@@ -151,7 +151,27 @@ WHERE LTRIM(sociedad,'0') = @soc
                             End Using
                         End Using
 
+                        Dim ridExist As Long = If(dtExist.Rows.Count > 0, dtExist.Rows(0).Field(Of Long)("RowId"), 0)
+
+                        ' Si el par ya existe y los saldos son iguales, solo actualizamos la cuenta Oracle
+                        If esParIgual AndAlso dtExist.Rows.Count > 0 Then
+                            Using cmdUpdCo As New SQLiteCommand("UPDATE t_in_sap SET cuenta_oracle=@co WHERE rowid=@rid;", conn, tran)
+                                cmdUpdCo.Parameters.AddWithValue("@co", ctaOra)
+                                cmdUpdCo.Parameters.AddWithValue("@rid", ridExist)
+                                cmdUpdCo.ExecuteNonQuery()
+                            End Using
+                            Continue For
+                        End If
+
+                        ' Descripción base para el nuevo renglón
                         Dim descripcion As String = $"Reclasificación {detalle.Field(Of String)("SociedadSap")}-{ctaOra}"
+
+                        ' Si no se encontró un par con este IC en t_in_sap, se
+                        ' agrega la advertencia solicitada
+                        If dtExist.Rows.Count = 0 Then
+                            descripcion &= " Falta eliminar el saldo cuenta complementaria"
+                        End If
+
 
                         Dim colNames = String.Join(", ", cols)
                         Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
@@ -169,8 +189,10 @@ WHERE LTRIM(sociedad,'0') = @soc
                         End Using
 
                         If dtExist.Rows.Count > 0 Then
-                            Dim ridExist As Long = dtExist.Rows(0).Field(Of Long)("RowId")
+
                             If esParIgual Then
+                                ' Caso cubierto previamente, se elimina para mantener consistencia
+
                                 Using cmdDel As New SQLiteCommand("DELETE FROM t_in_sap WHERE rowid=@rid;", conn, tran)
                                     cmdDel.Parameters.AddWithValue("@rid", ridExist)
                                     cmdDel.ExecuteNonQuery()
