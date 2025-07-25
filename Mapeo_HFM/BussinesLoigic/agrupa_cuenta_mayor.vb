@@ -19,11 +19,16 @@ Public Class agrupa_cuenta_mayor
             ' ——————————————————————————————
             Dim gruposDisponibles As New List(Of String)
             Using cmd As New SQLiteCommand(
-                "SELECT DISTINCT g.GRUPO
-                   FROM t_in_sap AS s
-                   JOIN GL_ICP_Grupos AS g
-                     ON ltrim(s.sociedad, '0') = ltrim(g.GL_ICP, '0')
-                  ORDER BY g.GRUPO;", conn)
+                "SELECT DISTINCT g.GRUPO" & vbCrLf &
+                "  FROM t_in_sap AS s" & vbCrLf &
+                "  JOIN GL_ICP_Grupos AS g" & vbCrLf &
+                "    ON ltrim(s.sociedad, '0') = ltrim(g.GL_ICP, '0')" & vbCrLf &
+                "UNION" & vbCrLf &
+                "SELECT DISTINCT g.GRUPO" & vbCrLf &
+                "  FROM t_in_sap AS s" & vbCrLf &
+                "  JOIN GL_ICP_Grupos AS g" & vbCrLf &
+                "    ON ltrim(s.deudor_acreedor_2, '0') = ltrim(g.GL_ICP, '0')" & vbCrLf &
+                "ORDER BY GRUPO;", conn)
                 Using rdr = cmd.ExecuteReader()
                     While rdr.Read()
                         gruposDisponibles.Add(rdr.GetString(0).Trim())
@@ -181,7 +186,8 @@ Public Class agrupa_cuenta_mayor
             ' ——————————————————————————————
             ' 5) Filtrar por período y agregar periodo_SIFIC
             ' ——————————————————————————————
-            periodoProc = If(periodoInput = "TODO", listaPeriodos.Max(), CInt(periodoInput))
+            ' periodoProc ya contiene el número de período seleccionado en el
+            ' bloque anterior. Solo obtenemos la abreviatura de mes.
             Dim mesAbrev As String = MonthName(periodoProc, True)
 
             Dim dtFiltrado As DataTable = dtTemp.Clone()
@@ -258,7 +264,6 @@ Public Class agrupa_cuenta_mayor
                 nr("descripcion_cuenta_sific") = r("descripcion_cuenta_sific")
                 nr("deudor_acreedor_2") = r("deudor_acreedor_2")
                 nr("ICIA_SIFIC") = r("ICIA_SIFIC")
-                nr("periodo_SIFIC") = r("periodo_SIFIC")
                 nr("periodo_SIFIC") = r("periodo_SIFIC")
                 mapa(key) = nr
                 salida.Add(nr)
