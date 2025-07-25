@@ -23,11 +23,6 @@ Public Class agrupa_cuenta_mayor
                 "  FROM t_in_sap AS s" & vbCrLf &
                 "  JOIN GL_ICP_Grupos AS g" & vbCrLf &
                 "    ON ltrim(s.sociedad, '0') = ltrim(g.GL_ICP, '0')" & vbCrLf &
-                "UNION" & vbCrLf &
-                "SELECT DISTINCT g.GRUPO" & vbCrLf &
-                "  FROM t_in_sap AS s" & vbCrLf &
-                "  JOIN GL_ICP_Grupos AS g" & vbCrLf &
-                "    ON ltrim(s.deudor_acreedor_2, '0') = ltrim(g.GL_ICP, '0')" & vbCrLf &
                 "ORDER BY GRUPO;", conn)
                 Using rdr = cmd.ExecuteReader()
                     While rdr.Read()
@@ -71,19 +66,46 @@ Public Class agrupa_cuenta_mayor
             ' 3) Llenar dtTemp aplicando mismo trim de ceros en el JOIN
             ' ——————————————————————————————
             Dim dtTemp As New DataTable()
-            Using cmd As New SQLiteCommand(
-                "SELECT DISTINCT g.GRUPO
-                   FROM t_in_sap AS s
-                   JOIN GL_ICP_Grupos AS g
-                     ON ltrim(s.sociedad, '0') = ltrim(g.GL_ICP, '0')
-                  ORDER BY g.GRUPO;", conn)
-                Using rdr = cmd.ExecuteReader()
-                    While rdr.Read()
-                        gruposDisponibles.Add(rdr.GetString(0).Trim())
-                    End While
-                End Using
-            End Using
+            Using da As New SQLiteDataAdapter(
+                            "SELECT
+                            s.sociedad,
+                            s.saldo_acum,
+                            s.periodo,
+                            s.ejercicio,
+                            s.numero_cuenta    AS cuenta_sap,
+                            s.cuenta_oracle,
+                            s.cuenta_mayor_hfm,
+                            s.descripcion_cuenta_sific,
+                            s.deudor_acreedor_2,
 
+                            -- Mapeo de sociedad → grupo principal
+                            g1.GRUPO           AS grupo,
+
+                            -- Mapeo de deudor_acreedor_2 → grupo secundario (ICIA_SIFIC)
+                            g2.GRUPO           AS ICIA_SIFIC
+
+                        FROM t_in_sap AS s
+
+                        -- Join para mapa de sociedad
+                        JOIN GL_ICP_Grupos AS g1
+                          ON LTRIM(s.sociedad,      '0') = LTRIM(g1.GL_ICP, '0')
+
+                        -- Join adicional para mapa de deudor_acreedor_2
+                        JOIN GL_ICP_Grupos AS g2
+                          ON LTRIM(s.deudor_acreedor_2, '0') = LTRIM(g2.GL_ICP, '0')
+
+                        WHERE
+                            (@grupo = 'TODO')
+                            OR (g1.GRUPO = @grupo)
+
+                        ORDER BY
+                            s.periodo,
+                            s.sociedad;
+                        ",
+                                conn)
+                da.SelectCommand.Parameters.AddWithValue("@grupo", grupoSel)
+                da.Fill(dtTemp)
+            End Using
 
             If dtTemp.Rows.Count = 0 Then
                 MessageBox.Show("No hay registros para el grupo seleccionado.",
