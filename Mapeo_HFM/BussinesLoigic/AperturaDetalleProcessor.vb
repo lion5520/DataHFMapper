@@ -172,6 +172,7 @@ WHERE LTRIM(sociedad,'0') = @soc
                             descripcion &= " Falta eliminar el saldo cuenta complementaria"
                         End If
 
+
                         Dim colNames = String.Join(", ", cols)
                         Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
                         Dim sqlIns = $"INSERT INTO t_in_sap ({colNames}) VALUES ({paramNames});"
@@ -188,8 +189,10 @@ WHERE LTRIM(sociedad,'0') = @soc
                         End Using
 
                         If dtExist.Rows.Count > 0 Then
+
                             If esParIgual Then
                                 ' Caso cubierto previamente, se elimina para mantener consistencia
+
                                 Using cmdDel As New SQLiteCommand("DELETE FROM t_in_sap WHERE rowid=@rid;", conn, tran)
                                     cmdDel.Parameters.AddWithValue("@rid", ridExist)
                                     cmdDel.ExecuteNonQuery()
