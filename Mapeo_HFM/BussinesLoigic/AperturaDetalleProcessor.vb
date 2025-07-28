@@ -74,6 +74,7 @@ Public Class AperturaDetalleProcessor
                     Dim colNames = String.Join(", ", cols)
                     Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
                     Dim sqlIns = $"INSERT INTO t_in_sap ({colNames}) VALUES ({paramNames});"
+                    Dim newRowId As Long
                     Using cmdIns As New SQLiteCommand(sqlIns, conn, tran)
                         For Each col In cols
                             cmdIns.Parameters.AddWithValue("@" & col, padre(col))
@@ -81,6 +82,7 @@ Public Class AperturaDetalleProcessor
                         cmdIns.Parameters("@deudor_acreedor_2").Value = ic
                         cmdIns.Parameters("@saldo_acum").Value = saldo
                         cmdIns.ExecuteNonQuery()
+                        newRowId = conn.LastInsertRowId
                     End Using
 
                     ' Paso 2: Reclasificación
@@ -124,11 +126,18 @@ Public Class AperturaDetalleProcessor
                             End If
 
                             Using cmdUpd As New SQLiteCommand(
-                                "UPDATE t_in_sap SET saldo_acum=@s, numero_cuenta=@cta WHERE rowid=@rid;", conn, tran)
+                                "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
                                 cmdUpd.Parameters.AddWithValue("@s", nuevoSaldo)
-                                cmdUpd.Parameters.AddWithValue("@cta", ctaDest)
                                 cmdUpd.Parameters.AddWithValue("@rid", destRow("RowId"))
                                 cmdUpd.ExecuteNonQuery()
+                            End Using
+
+                            Using cmdUpdNew As New SQLiteCommand(
+                                "UPDATE t_in_sap SET numero_cuenta=@cta, sociedad=@soc WHERE rowid=@rid;", conn, tran)
+                                cmdUpdNew.Parameters.AddWithValue("@cta", ctaDest)
+                                cmdUpdNew.Parameters.AddWithValue("@soc", socDest)
+                                cmdUpdNew.Parameters.AddWithValue("@rid", newRowId)
+                                cmdUpdNew.ExecuteNonQuery()
                             End Using
 
                             ' Paso 3: Bitácora en polizas_HFM
