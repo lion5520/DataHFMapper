@@ -67,6 +67,7 @@ Public Class AperturaDetalleProcessor
                     Dim colNames = String.Join(", ", cols)
                     Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
                     Dim sqlIns = $"INSERT INTO t_in_sap ({colNames}) VALUES ({paramNames});"
+                    Dim newRowId As Long
                     Using cmdIns As New SQLiteCommand(sqlIns, conn, tran)
                         For Each col In cols
                             cmdIns.Parameters.AddWithValue("@" & col, padre(col))
@@ -74,6 +75,9 @@ Public Class AperturaDetalleProcessor
                         cmdIns.Parameters("@deudor_acreedor_2").Value = ic
                         cmdIns.Parameters("@saldo_acum").Value = saldo
                         cmdIns.ExecuteNonQuery()
+                        Using cmdLast As New SQLiteCommand("SELECT last_insert_rowid();", conn, tran)
+                            newRowId = Convert.ToInt64(cmdLast.ExecuteScalar())
+                        End Using
                     End Using
 
                     ' Paso 2: Reclasificación
@@ -97,8 +101,11 @@ Public Class AperturaDetalleProcessor
                         Dim dtDest As New DataTable()
                         Using cmdDest As New SQLiteCommand(
                             "SELECT rowid AS RowId, saldo_acum FROM t_in_sap " &
-                            "WHERE LTRIM(sociedad,'0')=@sd AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
+                            "WHERE rowid<>@newId AND LTRIM(sociedad,'0')=@sd " &
+                            "AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
+                            "ORDER BY CASE WHEN deudor_acreedor_2='ICP_NONE' THEN 0 ELSE 1 END " &
                             "LIMIT 1;", conn, tran)
+                            cmdDest.Parameters.AddWithValue("@newId", newRowId)
                             cmdDest.Parameters.AddWithValue("@sd", socDest.TrimStart("0"c))
                             cmdDest.Parameters.AddWithValue("@ic", ic)
                             Using da As New SQLiteDataAdapter(cmdDest)
