@@ -57,8 +57,9 @@ JOIN t_in_sap AS t
                     String.Join(", ", dtRep.Columns.Cast(Of DataColumn)().Select(Function(c) c.ColumnName)))
 
                 ' --------------------------------------------------------
-                ' 2) Agrupar en código por SociedadSap + CuentaSap
+                ' 2) Prepara las columnas de t_in_sap para insertar copias
                 ' --------------------------------------------------------
+
                 Dim grupos = dtRep.AsEnumerable().
                              GroupBy(Function(r) New With {
                                  Key .Soc = r.Field(Of String)("SociedadSap"),
@@ -81,17 +82,8 @@ JOIN t_in_sap AS t
                     End If
 
 
-                    ' ----------------------------------------------------
-                    ' 3) Buscar registro padre en t_in_sap
-                    ' ----------------------------------------------------
                     Dim dtPadre As New DataTable()
-                    Dim sqlPadre As String = "
-SELECT rowid AS RowId, *
-FROM t_in_sap
-WHERE LTRIM(sociedad,'0') = @soc
-  AND numero_cuenta      = @cta
-  AND deudor_acreedor_2  = '[ICP None]';
-"
+                    Dim sqlPadre As String = "SELECT rowid AS RowId, * FROM t_in_sap WHERE LTRIM(sociedad,'0')=@soc AND LTRIM(numero_cuenta,'0')=@cta LIMIT 1;"
                     Using cmdPadre As New SQLiteCommand(sqlPadre, conn, tran)
                         cmdPadre.Parameters.AddWithValue("@soc", soc)
                         cmdPadre.Parameters.AddWithValue("@cta", cta)
@@ -99,6 +91,7 @@ WHERE LTRIM(sociedad,'0') = @soc
                             daPadre.Fill(dtPadre)
                         End Using
                     End Using
+
                     Dim restarPadre As Boolean = True
                     If dtPadre.Rows.Count = 0 Then
                         ' Si no hay registro padre con [ICP None], tomamos cualquiera
@@ -228,7 +221,31 @@ UPDATE t_in_sap
                         End Using
                     End If
 
-                Next ' siguiente grupo
+
+                        ' --------------------------------------
+                        ' Paso 3: Bitácora en polizas_HFM
+                        ' --------------------------------------
+                        Dim grupo As String = String.Empty
+                        Using cmdGrp As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
+                            cmdGrp.Parameters.AddWithValue("@key", destCta)
+                            Dim res = cmdGrp.ExecuteScalar()
+                            If res IsNot Nothing Then grupo = res.ToString()
+                        End Using
+
+                        Using cmdBit As New SQLiteCommand("INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
+                            cmdBit.Parameters.AddWithValue("@grp", grupo)
+                            cmdBit.Parameters.AddWithValue("@acc", destCta)
+                            If tipo = "C" Then
+                                cmdBit.Parameters.AddWithValue("@deb", saldo)
+                                cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
+                            Else
+                                cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
+                                cmdBit.Parameters.AddWithValue("@hab", saldo)
+                            End If
+                            cmdBit.ExecuteNonQuery()
+                        End Using
+                    End If
+                Next
 
                 tran.Commit()
             End Using
