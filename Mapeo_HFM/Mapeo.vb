@@ -287,7 +287,7 @@ Public Class Mapeo
         End
     End Sub
 
-    Private Sub procesa_1_Click(sender As Object, e As EventArgs) Handles procesa_1.Click
+    Private Async Sub procesa_1_Click(sender As Object, e As EventArgs) Handles procesa_1.Click
         If procesa_1.Enabled = True Then
 
             ' 2) Validas y, si hay datos faltantes, muestras el formulario
@@ -304,8 +304,32 @@ Public Class Mapeo
 
             'Procesa_CIA_ICP.Ejecutar(rutaSQLite_A)
 
-            Dim proc As New AperturaDetalleProcessor(rutaSQLite_A)
-            proc.ProcesarReporteIC()
+
+
+            ' 1) Arranca el parpadeo
+            procesa_1.Image = originalImage_procesa_1
+            IniciarParpadeoImagen(procesa_1)
+
+            Try
+                Me.Cursor = Cursors.WaitCursor
+                ' 2) Ejecuta tu operación en segundo plano
+                Await Task.Run(Sub()
+                                   Dim proc As New AperturaDetalleProcessor(rutaSQLite_A)
+                                   proc.ProcesarReporteIC()
+
+                               End Sub)
+
+            Catch ex As Exception
+                MessageBox.Show("Ocurrió un error:" & Environment.NewLine & ex.Message,
+                                                              "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Finally
+                ' 3) Detiene el parpadeo (restaura la imagen original)
+                DetenerParpadeo()
+                Me.Cursor = Cursors.Default
+            End Try
+
+
+
 
             'Si todo bien pinta en color 
             procesa_1.Image = originalImage_procesa_1
