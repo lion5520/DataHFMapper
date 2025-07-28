@@ -8,6 +8,13 @@ Public Class AperturaDetalleProcessor
 
     Private ReadOnly _rutaBd As String
 
+    ''' <summary>
+    ''' Elimina ceros a la izquierda en claves de cuenta o sociedad.
+    ''' </summary>
+    Private Shared Function NormalizeKey(value As String) As String
+        Return value?.TrimStart("0"c)
+    End Function
+
     Public Sub New(rutaBd As String)
         If String.IsNullOrWhiteSpace(rutaBd) Then
             Throw New ArgumentException("La ruta de la BD no puede estar vacía.", NameOf(rutaBd))
@@ -43,9 +50,9 @@ Public Class AperturaDetalleProcessor
                                .ToList()
 
                 For Each repRow As DataRow In dtRep.Rows
-                    Dim soc As String = repRow("SociedadSap").ToString()
-                    Dim cta As String = repRow("CuentaSap").ToString()
-                    Dim ic As String = repRow("ICSap").ToString()
+                    Dim soc As String = NormalizeKey(repRow("SociedadSap").ToString())
+                    Dim cta As String = NormalizeKey(repRow("CuentaSap").ToString())
+                    Dim ic As String = NormalizeKey(repRow("ICSap").ToString())
                     Dim saldo As Double = Convert.ToDouble(repRow("Saldo"))
 
                     Dim dtPadre As New DataTable()
@@ -90,8 +97,8 @@ Public Class AperturaDetalleProcessor
 
                     If dtClas.Rows.Count > 0 Then
                         Dim clas = dtClas.Rows(0)
-                        Dim socDest As String = clas("Entidad_i").ToString()
-                        Dim ctaDest As String = clas("CUENTA_i").ToString()
+                        Dim socDest As String = NormalizeKey(clas("Entidad_i").ToString())
+                        Dim ctaDest As String = NormalizeKey(clas("CUENTA_i").ToString())
                         Dim tipo As String = clas("Tipo_i").ToString()
 
                         Dim dtDest As New DataTable()
@@ -99,7 +106,7 @@ Public Class AperturaDetalleProcessor
                             "SELECT rowid AS RowId, saldo_acum FROM t_in_sap " &
                             "WHERE LTRIM(sociedad,'0')=@sd AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
                             "LIMIT 1;", conn, tran)
-                            cmdDest.Parameters.AddWithValue("@sd", socDest.TrimStart("0"c))
+                            cmdDest.Parameters.AddWithValue("@sd", socDest)
                             cmdDest.Parameters.AddWithValue("@ic", ic)
                             Using da As New SQLiteDataAdapter(cmdDest)
                                 da.Fill(dtDest)
