@@ -5,6 +5,9 @@ Imports System.Data.SQLite
 Imports System.IO
 Imports System.Text
 Imports System.Globalization
+Imports Excel = Microsoft.Office.Interop.Excel
+Imports System.Runtime.InteropServices
+
 
 Module ExcelToSQLite
 

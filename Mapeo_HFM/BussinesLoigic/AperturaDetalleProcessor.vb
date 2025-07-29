@@ -118,13 +118,10 @@ Public Class AperturaDetalleProcessor
                         Dim dtDest As New DataTable()
                         Using cmdDest As New SQLiteCommand(
                             "SELECT rowid AS RowId, saldo_acum FROM t_in_sap " &
-                            "WHERE LTRIM(sociedad,'0')=@sd AND LTRIM(numero_cuenta,'0')=@cta " &
-                            "AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
-                            "AND rowid<>@id LIMIT 1;", conn, tran)
+                            "WHERE LTRIM(sociedad,'0')=@sd AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
+                            "LIMIT 1;", conn, tran)
                             cmdDest.Parameters.AddWithValue("@sd", socDest)
-                            cmdDest.Parameters.AddWithValue("@cta", ctaDest)
                             cmdDest.Parameters.AddWithValue("@ic", ic)
-                            cmdDest.Parameters.AddWithValue("@id", newRowId)
                             Using da As New SQLiteDataAdapter(cmdDest)
                                 da.Fill(dtDest)
                             End Using

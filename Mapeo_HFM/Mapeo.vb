@@ -278,9 +278,9 @@ Public Class Mapeo
     End Function
 
     Private Sub previsualiza_1_Click(sender As Object, e As EventArgs) Handles previsualiza_1.Click
-        If previsualiza_1.Enabled = True Then
-            ExcelDbExporter.ExportToExcel(rutaSQLite_A, "lay_out")
-        End If
+
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_5")
+        exporter.Export()
     End Sub
 
     Private Sub b_salir_Click(sender As Object, e As EventArgs) Handles b_salir.Click
@@ -469,9 +469,9 @@ ORDER BY sociedad;
     End Sub
 
     Private Sub previsualiza_4_Click(sender As Object, e As EventArgs) Handles previsualiza_4.Click
-        If previsualiza_1.Enabled = True Then
-            ExcelDbExporter.ExportToExcel(rutaSQLite_A, "pre_lay_out")
-        End If
+
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_5")
+        exporter.Export()
     End Sub
 
     Private Sub PictureBox2_Click(sender As Object, e As EventArgs) Handles PictureBox2.Click
@@ -577,16 +577,17 @@ ORDER BY sociedad;
     End Sub
 
     Private Sub previsualiza_5_Click(sender As Object, e As EventArgs) Handles previsualiza_5.Click
-        If previsualiza_5.Enabled = True Then
-            ExcelDbExporter.ExportToExcel(rutaSQLite_A, "lay_out")
-        End If
-    End Sub
 
-    Private Sub previsualiza_3_Click(sender As Object, e As EventArgs) Handles previsualiza_3.Click
-
-        Dim frmPolizas As New FrmPolizasHFM()
-
-        frmPolizas.Show()
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_5")
+        exporter.Export()
 
     End Sub
+
+    Private Sub PictureBox3_Click(sender As Object, e As EventArgs) Handles PictureBox3.Click
+
+
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_5")
+        exporter.Export()
+    End Sub
+
 End Class
