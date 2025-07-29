@@ -150,7 +150,7 @@ Public Class AperturaDetalleProcessor
 
                             Using cmdBit As New SQLiteCommand(
                                 "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
-                                "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
+                                "VALUES (@grp,'RECLASIFICACION',@acc,@deb,@hab);", conn, tran)
                                 cmdBit.Parameters.AddWithValue("@grp", grupo)
                                 cmdBit.Parameters.AddWithValue("@acc", ctaDest)
                                 If String.Equals(tipo, "C", StringComparison.OrdinalIgnoreCase) Then
