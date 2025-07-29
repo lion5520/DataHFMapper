@@ -38,6 +38,7 @@ Public Class AperturaDetalleProcessor
                     "SELECT LTRIM(ICSap,'0') AS ICSap, " &
                     "       LTRIM(SociedadSap,'0') AS SociedadSap, " &
                     "       LTRIM(CuentaSap,'0') AS CuentaSap, " &
+                    "       Cuenta_Parte_Relacionada, " &
                     "       Saldo " &
                     "  FROM reporte_IC", conn, tran)
                     Using da As New SQLiteDataAdapter(cmdRep)
@@ -57,6 +58,7 @@ Public Class AperturaDetalleProcessor
                     Dim cta As String = NormalizeKey(repRow("CuentaSap").ToString())
                     Dim ic As String = NormalizeKey(repRow("ICSap").ToString())
                     Dim saldo As Double = Convert.ToDouble(repRow("Saldo"))
+                    Dim ctaOracle As String = repRow("Cuenta_Parte_Relacionada").ToString()
 
                     Dim dtPadre As New DataTable()
                     Using cmdFind As New SQLiteCommand(
@@ -84,6 +86,7 @@ Public Class AperturaDetalleProcessor
                         Next
                         cmdIns.Parameters("@deudor_acreedor_2").Value = ic
                         cmdIns.Parameters("@saldo_acum").Value = saldo
+                        cmdIns.Parameters("@cuenta_oracle").Value = ctaOracle
                         cmdIns.ExecuteNonQuery()
                         newRowId = conn.LastInsertRowId
                     End Using
