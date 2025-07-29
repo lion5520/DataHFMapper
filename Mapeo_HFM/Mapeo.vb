@@ -24,12 +24,15 @@ Public Class Mapeo
     Private originalImage_flecha_3 As Image
     Private originalImage_procesa_2 As Image
     Private originalImage_txt_sific As Image
+    Private originalImage_MatrizOperICP As Image
+    Private originalImage_Previsualisa_P1 As Image
+    Private originalImage_ProcesaPolizas As Image
 
     Private Sub guardaImagenesOrignals()
         originalImage_SAP_IN = SAP_IN.Image
         originalImage_procesa_1 = procesa_1.Image
-        originalImage_previsualiza_1 = previsualiza_1.Image
-        originalImage_previsualiza_2 = previsualiza_2.Image
+        originalImage_previsualiza_1 = previsualiza__MatrizOperICP.Image
+        originalImage_previsualiza_2 = MatrizOperICP_up.Image
         originalImage_previsualiza_3 = previsualiza_3.Image
         originalImage_previsualiza_4 = previsualiza_4.Image
         originalImage_previsualiza_5 = previsualiza_5.Image
@@ -40,13 +43,16 @@ Public Class Mapeo
         originalImage_flecha_3 = flecha_3.Image
         originalImage_procesa_2 = procesa_2.Image
         originalImage_txt_sific = txt_sific.Image
+        originalImage_MatrizOperICP = MatrizOperICP_up.Image
+        originalImage_Previsualisa_P1 = Previsualiza_P1.Image
+        originalImage_ProcesaPolizas = Procesa_Polizas.Image
     End Sub
 
     Private Sub todoGris()
         SAP_IN.Image = ToGrayscale(originalImage_SAP_IN)
         procesa_1.Image = ToGrayscale(originalImage_procesa_1)
-        previsualiza_1.Image = ToGrayscale(originalImage_previsualiza_1)
-        previsualiza_2.Image = ToGrayscale(originalImage_previsualiza_2)
+        previsualiza__MatrizOperICP.Image = ToGrayscale(originalImage_previsualiza_1)
+        MatrizOperICP_up.Image = ToGrayscale(originalImage_previsualiza_2)
         previsualiza_3.Image = ToGrayscale(originalImage_previsualiza_3)
         previsualiza_4.Image = ToGrayscale(originalImage_previsualiza_4)
         previsualiza_5.Image = ToGrayscale(originalImage_previsualiza_5)
@@ -57,12 +63,15 @@ Public Class Mapeo
         flecha_3.Image = ToGrayscale(originalImage_flecha_3)
         procesa_2.Image = ToGrayscale(originalImage_procesa_2)
         txt_sific.Image = ToGrayscale(originalImage_txt_sific)
+        MatrizOperICP_up.Image = ToGrayscale(originalImage_MatrizOperICP)
+        Previsualiza_P1.Image = ToGrayscale(originalImage_Previsualisa_P1)
+        Procesa_Polizas.Image = ToGrayscale(originalImage_ProcesaPolizas)
     End Sub
 
     Private Sub desavilitaTodo()
         procesa_1.Enabled = False
-        previsualiza_1.Enabled = False
-        previsualiza_2.Enabled = False
+        previsualiza__MatrizOperICP.Enabled = False
+        MatrizOperICP_up.Enabled = False
         previsualiza_3.Enabled = False
         previsualiza_4.Enabled = False
         previsualiza_5.Enabled = False
@@ -73,6 +82,8 @@ Public Class Mapeo
         flecha_3.Enabled = False
         procesa_2.Enabled = False
         txt_sific.Enabled = False
+        Previsualiza_P1.Enabled = False
+        Procesa_Polizas.Enabled = False
     End Sub
     Private Sub Mapeo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         'Guarda la imagen original para poder restaurarla
@@ -277,9 +288,9 @@ Public Class Mapeo
         Return bmp
     End Function
 
-    Private Sub previsualiza_1_Click(sender As Object, e As EventArgs) Handles previsualiza_1.Click
+    Private Sub previsualiza_1_Click(sender As Object, e As EventArgs) Handles previsualiza__MatrizOperICP.Click
 
-        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_5")
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "reporte_IC", "Previsualiza_5")
         exporter.Export()
     End Sub
 
@@ -336,13 +347,20 @@ Public Class Mapeo
             flecha_2.Image = originalImage_flecha_2
             flecha_2_1.Image = originalImage_flecha_2_1
             flecha_2_2.Image = originalImage_flecha_2_2
-            previsualiza_1.Image = originalImage_previsualiza_1
+            'previsualiza__MatrizOperICP.Image = originalImage_previsualiza_1
+            Previsualiza_P1.Image = originalImage_previsualiza_1
+            Procesa_Polizas.Image = originalImage_ProcesaPolizas
 
             procesa_2.Cursor = Cursors.Hand
             procesa_2.Enabled = True
 
-            previsualiza_1.Enabled = True
-            previsualiza_1.Cursor = Cursors.Hand
+            Previsualiza_P1.Enabled = True
+            Previsualiza_P1.Cursor = Cursors.Hand
+            'previsualiza__MatrizOperICP.Enabled = True
+            'previsualiza__MatrizOperICP.Cursor = Cursors.Hand
+            Procesa_Polizas.Enabled = True
+            Procesa_Polizas.Cursor = Cursors.Hand
+
 
             lbl_conversion_icp.ForeColor = Color.ForestGreen
             lbl_conversion_cia.ForeColor = Color.ForestGreen
@@ -474,14 +492,14 @@ ORDER BY sociedad;
         exporter.Export()
     End Sub
 
-    Private Sub PictureBox2_Click(sender As Object, e As EventArgs) Handles PictureBox2.Click
+    Private Sub PictureBox2_Click(sender As Object, e As EventArgs) Handles Procesa_Polizas.Click
 
         Dim frm As New Captura_Polizas(rutaSQLite_A, Me)
         frm.Show()
 
     End Sub
 
-    Private Async Sub previsualiza_2_Click(sender As Object, e As EventArgs) Handles previsualiza_2.Click
+    Private Async Sub previsualiza_2_Click(sender As Object, e As EventArgs) Handles MatrizOperICP_up.Click
 
         Dim rutaExcel As String
 
@@ -498,8 +516,8 @@ ORDER BY sociedad;
 
 
         ' 1) Arranca el parpadeo
-        previsualiza_2.Image = originalImage_previsualiza_2
-        IniciarParpadeoImagen(previsualiza_2)
+        MatrizOperICP_up.Image = originalImage_previsualiza_2
+        IniciarParpadeoImagen(MatrizOperICP_up)
 
         Try
             Me.Cursor = Cursors.WaitCursor
@@ -527,11 +545,12 @@ ORDER BY sociedad;
         'Si todo bien pinta en color 
         flecha_2_1.Image = originalImage_flecha_2_1
 
+
         txt_sific.Cursor = Cursors.Hand
         txt_sific.Enabled = True
 
-
-
+        previsualiza__MatrizOperICP.Enabled = True
+        previsualiza__MatrizOperICP.Image = originalImage_previsualiza_1
 
 
 
@@ -583,11 +602,15 @@ ORDER BY sociedad;
 
     End Sub
 
-    Private Sub PictureBox3_Click(sender As Object, e As EventArgs) Handles PictureBox3.Click
+    Private Sub Previsualiza_P1_Click(sender As Object, e As EventArgs) Handles Previsualiza_P1.Click
 
-
-        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_5")
+        Me.Cursor = Cursors.WaitCursor
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_IntegracionMatrizOperICP")
         exporter.Export()
+        Me.Cursor = Cursors.Default
+
     End Sub
+
+
 
 End Class

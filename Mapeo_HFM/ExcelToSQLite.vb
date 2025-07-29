@@ -30,7 +30,7 @@ Module ExcelToSQLite
         Dim mesAnterior As String = CultureInfo.CreateSpecificCulture("es-MX").DateTimeFormat.GetAbbreviatedMonthName(DateTime.Now.AddMonths(-1).Month).Replace(".", "").ToUpper()
         Dim anioActual As Integer = DateTime.Now.Year
 
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial
+        'ExcelPackage.LicenseContext = LicenseContext.NonCommercial
         Using package As New ExcelPackage(New FileInfo(rutaExcel))
             Dim hoja = package.Workbook.Worksheets.First()
             Dim filaInicio As Integer = 0

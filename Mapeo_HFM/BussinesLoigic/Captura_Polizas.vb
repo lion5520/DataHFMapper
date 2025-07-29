@@ -162,7 +162,7 @@ VALUES
     Private Sub BtnExport_Click(sender As Object, e As EventArgs)
         Using dlg As New SaveFileDialog() With {.Filter = "Excel Files|*.xlsx", .FileName = "Polizas.xlsx"}
             If dlg.ShowDialog() <> DialogResult.OK Then Return
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial
+            'ExcelPackage.LicenseContext = LicenseContext.NonCommercial
             Using pkg = New ExcelPackage(), ws = pkg.Workbook.Worksheets.Add("Pólizas")
                 Dim r = 1
                 ws.Cells(r, 1).Value = "Aplicación: PRDIZZI" : r += 1
