@@ -581,4 +581,12 @@ ORDER BY sociedad;
             ExcelDbExporter.ExportToExcel(rutaSQLite_A, "lay_out")
         End If
     End Sub
+
+    Private Sub previsualiza_3_Click(sender As Object, e As EventArgs) Handles previsualiza_3.Click
+
+        Dim frmPolizas As New FrmPolizasHFM()
+
+        frmPolizas.Show()
+
+    End Sub
 End Class
