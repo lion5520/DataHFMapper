@@ -151,30 +151,46 @@ Public Class AperturaDetalleProcessor
                                 cmdUpdNew.Parameters.AddWithValue("@rid", newRowId)
                                 cmdUpdNew.ExecuteNonQuery()
                             End Using
-
-                            ' Paso 3: Bitácora en polizas_HFM
-                            Dim grupo As String = String.Empty
-                            Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
-                                cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
-                                Dim val = cmdGrupo.ExecuteScalar()
-                                If val IsNot Nothing Then grupo = val.ToString()
-                            End Using
-
-                            Using cmdBit As New SQLiteCommand(
-                                "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
-                                "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
-                                cmdBit.Parameters.AddWithValue("@grp", grupo)
-                                cmdBit.Parameters.AddWithValue("@acc", ctaDest)
-                                If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
-                                    cmdBit.Parameters.AddWithValue("@deb", saldo)
-                                    cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
-                                Else
-                                    cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
-                                    cmdBit.Parameters.AddWithValue("@hab", saldo)
-                                End If
-                                cmdBit.ExecuteNonQuery()
-                            End Using
                         End If
+
+                        ' Ajustar saldo del registro padre
+                        Dim saldoPadre As Double = Convert.ToDouble(padre("saldo_acum"))
+                        Dim nuevoSaldoPadre As Double = saldoPadre
+                        If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
+                            nuevoSaldoPadre -= saldo
+                        Else
+                            nuevoSaldoPadre += saldo
+                        End If
+
+                        Using cmdUpdPadre As New SQLiteCommand(
+                            "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
+                            cmdUpdPadre.Parameters.AddWithValue("@s", nuevoSaldoPadre)
+                            cmdUpdPadre.Parameters.AddWithValue("@rid", padre("RowId"))
+                            cmdUpdPadre.ExecuteNonQuery()
+                        End Using
+
+                        ' Paso 3: Bitácora en polizas_HFM
+                        Dim grupo As String = String.Empty
+                        Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
+                            cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
+                            Dim val = cmdGrupo.ExecuteScalar()
+                            If val IsNot Nothing Then grupo = val.ToString()
+                        End Using
+
+                        Using cmdBit As New SQLiteCommand(
+                            "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
+                            "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
+                            cmdBit.Parameters.AddWithValue("@grp", grupo)
+                            cmdBit.Parameters.AddWithValue("@acc", ctaDest)
+                            If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
+                                cmdBit.Parameters.AddWithValue("@deb", saldo)
+                                cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
+                            Else
+                                cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
+                                cmdBit.Parameters.AddWithValue("@hab", saldo)
+                            End If
+                            cmdBit.ExecuteNonQuery()
+                        End Using
                     End If
                 Next
 
