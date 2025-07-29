@@ -49,6 +49,9 @@ Public Class AperturaDetalleProcessor
                                .Where(Function(c) c <> "rowid" AndAlso c <> "id") _
                                .ToList()
 
+                ' Verificar si cat_deudor_acredor cuenta con la columna Operacion_Destino
+                Dim hasOperacion As Boolean = ColumnExists(conn, tran, "cat_deudor_acredor", "Operacion_Destino")
+
                 For Each repRow As DataRow In dtRep.Rows
                     Dim soc As String = NormalizeKey(repRow("SociedadSap").ToString())
                     Dim cta As String = NormalizeKey(repRow("CuentaSap").ToString())
@@ -87,9 +90,15 @@ Public Class AperturaDetalleProcessor
 
                     ' Paso 2: Reclasificación
                     Dim dtClas As New DataTable()
-                    Using cmdClas As New SQLiteCommand(
-                        "SELECT Entidad_i, CUENTA_i, Tipo_i FROM cat_deudor_acredor " &
-                        "WHERE LTRIM(ICP_i,'0')=@ic AND LTRIM(CUENTA_d,'0')=@cta LIMIT 1;", conn, tran)
+                    Dim sqlClas As String
+                    If hasOperacion Then
+                        sqlClas = "SELECT Entidad_i, CUENTA_i, Operacion_Destino FROM cat_deudor_acredor " &
+                                  "WHERE LTRIM(ICP_i,'0')=@ic AND LTRIM(CUENTA_d,'0')=@cta LIMIT 1;"
+                    Else
+                        sqlClas = "SELECT Entidad_i, CUENTA_i, Tipo_i AS Operacion_Destino FROM cat_deudor_acredor " &
+                                  "WHERE LTRIM(ICP_i,'0')=@ic AND LTRIM(CUENTA_d,'0')=@cta LIMIT 1;"
+                    End If
+                    Using cmdClas As New SQLiteCommand(sqlClas, conn, tran)
                         cmdClas.Parameters.AddWithValue("@ic", ic)
                         cmdClas.Parameters.AddWithValue("@cta", cta)
                         Using da As New SQLiteDataAdapter(cmdClas)
@@ -101,7 +110,7 @@ Public Class AperturaDetalleProcessor
                         Dim clas = dtClas.Rows(0)
                         Dim socDest As String = NormalizeKey(clas("Entidad_i").ToString())
                         Dim ctaDest As String = NormalizeKey(clas("CUENTA_i").ToString())
-                        Dim tipo As String = clas("Tipo_i").ToString()
+                        Dim operacion As String = clas("Operacion_Destino").ToString()
 
                         Dim dtDest As New DataTable()
                         Using cmdDest As New SQLiteCommand(
@@ -119,7 +128,7 @@ Public Class AperturaDetalleProcessor
                             Dim destRow = dtDest.Rows(0)
                             Dim saldoActual As Double = Convert.ToDouble(destRow("saldo_acum"))
                             Dim nuevoSaldo As Double = saldoActual
-                            If String.Equals(tipo, "C", StringComparison.OrdinalIgnoreCase) Then
+                            If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
                                 nuevoSaldo -= saldo
                             Else
                                 nuevoSaldo += saldo
@@ -153,7 +162,7 @@ Public Class AperturaDetalleProcessor
                                 "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
                                 cmdBit.Parameters.AddWithValue("@grp", grupo)
                                 cmdBit.Parameters.AddWithValue("@acc", ctaDest)
-                                If String.Equals(tipo, "C", StringComparison.OrdinalIgnoreCase) Then
+                                If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
                                     cmdBit.Parameters.AddWithValue("@deb", saldo)
                                     cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
                                 Else
@@ -183,6 +192,26 @@ Public Class AperturaDetalleProcessor
             End Using
         End Using
         Return lista
+    End Function
+
+    ''' <summary>
+    ''' Verifica si una tabla contiene determinada columna.
+    ''' </summary>
+    Private Function ColumnExists(conn As SQLiteConnection,
+                                   tran As SQLiteTransaction,
+                                   tableName As String,
+                                   columnName As String) As Boolean
+        Using cmd As New SQLiteCommand($"PRAGMA table_info({tableName});", conn, tran)
+            Using rdr = cmd.ExecuteReader()
+                While rdr.Read()
+                    Dim name = rdr.GetString(rdr.GetOrdinal("name"))
+                    If String.Equals(name, columnName, StringComparison.OrdinalIgnoreCase) Then
+                        Return True
+                    End If
+                End While
+            End Using
+        End Using
+        Return False
     End Function
 
 End Class
