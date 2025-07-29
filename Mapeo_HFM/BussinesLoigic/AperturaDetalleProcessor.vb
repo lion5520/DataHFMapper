@@ -8,6 +8,13 @@ Public Class AperturaDetalleProcessor
 
     Private ReadOnly _rutaBd As String
 
+    ''' <summary>
+    ''' Elimina ceros a la izquierda en claves de cuenta o sociedad.
+    ''' </summary>
+    Private Shared Function NormalizeKey(value As String) As String
+        Return value?.TrimStart("0"c)
+    End Function
+
     Public Sub New(rutaBd As String)
         If String.IsNullOrWhiteSpace(rutaBd) Then
             Throw New ArgumentException("La ruta de la BD no puede estar vacía.", NameOf(rutaBd))
@@ -43,9 +50,9 @@ Public Class AperturaDetalleProcessor
                                .ToList()
 
                 For Each repRow As DataRow In dtRep.Rows
-                    Dim soc As String = repRow("SociedadSap").ToString()
-                    Dim cta As String = repRow("CuentaSap").ToString()
-                    Dim ic As String = repRow("ICSap").ToString()
+                    Dim soc As String = NormalizeKey(repRow("SociedadSap").ToString())
+                    Dim cta As String = NormalizeKey(repRow("CuentaSap").ToString())
+                    Dim ic As String = NormalizeKey(repRow("ICSap").ToString())
                     Dim saldo As Double = Convert.ToDouble(repRow("Saldo"))
 
                     Dim dtPadre As New DataTable()
@@ -67,6 +74,7 @@ Public Class AperturaDetalleProcessor
                     Dim colNames = String.Join(", ", cols)
                     Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
                     Dim sqlIns = $"INSERT INTO t_in_sap ({colNames}) VALUES ({paramNames});"
+                    Dim newRowId As Long
                     Using cmdIns As New SQLiteCommand(sqlIns, conn, tran)
                         For Each col In cols
                             cmdIns.Parameters.AddWithValue("@" & col, padre(col))
@@ -74,6 +82,7 @@ Public Class AperturaDetalleProcessor
                         cmdIns.Parameters("@deudor_acreedor_2").Value = ic
                         cmdIns.Parameters("@saldo_acum").Value = saldo
                         cmdIns.ExecuteNonQuery()
+                        newRowId = conn.LastInsertRowId
                     End Using
 
                     ' Paso 2: Reclasificación
@@ -90,8 +99,8 @@ Public Class AperturaDetalleProcessor
 
                     If dtClas.Rows.Count > 0 Then
                         Dim clas = dtClas.Rows(0)
-                        Dim socDest As String = clas("Entidad_i").ToString()
-                        Dim ctaDest As String = clas("CUENTA_i").ToString()
+                        Dim socDest As String = NormalizeKey(clas("Entidad_i").ToString())
+                        Dim ctaDest As String = NormalizeKey(clas("CUENTA_i").ToString())
                         Dim tipo As String = clas("Tipo_i").ToString()
 
                         Dim dtDest As New DataTable()
@@ -99,7 +108,7 @@ Public Class AperturaDetalleProcessor
                             "SELECT rowid AS RowId, saldo_acum FROM t_in_sap " &
                             "WHERE LTRIM(sociedad,'0')=@sd AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
                             "LIMIT 1;", conn, tran)
-                            cmdDest.Parameters.AddWithValue("@sd", socDest.TrimStart("0"c))
+                            cmdDest.Parameters.AddWithValue("@sd", socDest)
                             cmdDest.Parameters.AddWithValue("@ic", ic)
                             Using da As New SQLiteDataAdapter(cmdDest)
                                 da.Fill(dtDest)
@@ -117,36 +126,43 @@ Public Class AperturaDetalleProcessor
                             End If
 
                             Using cmdUpd As New SQLiteCommand(
-                                "UPDATE t_in_sap SET saldo_acum=@s, numero_cuenta=@cta WHERE rowid=@rid;", conn, tran)
+                                "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
                                 cmdUpd.Parameters.AddWithValue("@s", nuevoSaldo)
-                                cmdUpd.Parameters.AddWithValue("@cta", ctaDest)
                                 cmdUpd.Parameters.AddWithValue("@rid", destRow("RowId"))
                                 cmdUpd.ExecuteNonQuery()
                             End Using
-
-                            ' Paso 3: Bitácora en polizas_HFM
-                            Dim grupo As String = String.Empty
-                            Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
-                                cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
-                                Dim val = cmdGrupo.ExecuteScalar()
-                                If val IsNot Nothing Then grupo = val.ToString()
-                            End Using
-
-                            Using cmdBit As New SQLiteCommand(
-                                "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
-                                "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
-                                cmdBit.Parameters.AddWithValue("@grp", grupo)
-                                cmdBit.Parameters.AddWithValue("@acc", ctaDest)
-                                If String.Equals(tipo, "C", StringComparison.OrdinalIgnoreCase) Then
-                                    cmdBit.Parameters.AddWithValue("@deb", saldo)
-                                    cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
-                                Else
-                                    cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
-                                    cmdBit.Parameters.AddWithValue("@hab", saldo)
-                                End If
-                                cmdBit.ExecuteNonQuery()
-                            End Using
                         End If
+
+                        Using cmdUpdNew As New SQLiteCommand(
+                            "UPDATE t_in_sap SET numero_cuenta=@cta, sociedad=@soc WHERE rowid=@rid;", conn, tran)
+                            cmdUpdNew.Parameters.AddWithValue("@cta", ctaDest)
+                            cmdUpdNew.Parameters.AddWithValue("@soc", socDest)
+                            cmdUpdNew.Parameters.AddWithValue("@rid", newRowId)
+                            cmdUpdNew.ExecuteNonQuery()
+                        End Using
+
+                        ' Paso 3: Bitácora en polizas_HFM
+                        Dim grupo As String = String.Empty
+                        Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
+                            cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
+                            Dim val = cmdGrupo.ExecuteScalar()
+                            If val IsNot Nothing Then grupo = val.ToString()
+                        End Using
+
+                        Using cmdBit As New SQLiteCommand(
+                            "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
+                            "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
+                            cmdBit.Parameters.AddWithValue("@grp", grupo)
+                            cmdBit.Parameters.AddWithValue("@acc", ctaDest)
+                            If String.Equals(tipo, "C", StringComparison.OrdinalIgnoreCase) Then
+                                cmdBit.Parameters.AddWithValue("@deb", saldo)
+                                cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
+                            Else
+                                cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
+                                cmdBit.Parameters.AddWithValue("@hab", saldo)
+                            End If
+                            cmdBit.ExecuteNonQuery()
+                        End Using
                     End If
                 Next
 
