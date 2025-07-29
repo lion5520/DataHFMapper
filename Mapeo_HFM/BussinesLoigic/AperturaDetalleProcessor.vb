@@ -38,6 +38,7 @@ Public Class AperturaDetalleProcessor
                     "SELECT LTRIM(ICSap,'0') AS ICSap, " &
                     "       LTRIM(SociedadSap,'0') AS SociedadSap, " &
                     "       LTRIM(CuentaSap,'0') AS CuentaSap, " &
+                    "       Cuenta_Parte_Relacionada, " &
                     "       Saldo " &
                     "  FROM reporte_IC", conn, tran)
                     Using da As New SQLiteDataAdapter(cmdRep)
@@ -57,6 +58,7 @@ Public Class AperturaDetalleProcessor
                     Dim cta As String = NormalizeKey(repRow("CuentaSap").ToString())
                     Dim ic As String = NormalizeKey(repRow("ICSap").ToString())
                     Dim saldo As Double = Convert.ToDouble(repRow("Saldo"))
+                    Dim ctaOracle As String = repRow("Cuenta_Parte_Relacionada").ToString()
 
                     Dim dtPadre As New DataTable()
                     Using cmdFind As New SQLiteCommand(
@@ -84,6 +86,7 @@ Public Class AperturaDetalleProcessor
                         Next
                         cmdIns.Parameters("@deudor_acreedor_2").Value = ic
                         cmdIns.Parameters("@saldo_acum").Value = saldo
+                        cmdIns.Parameters("@cuenta_oracle").Value = ctaOracle
                         cmdIns.ExecuteNonQuery()
                         newRowId = conn.LastInsertRowId
                     End Using
@@ -148,30 +151,46 @@ Public Class AperturaDetalleProcessor
                                 cmdUpdNew.Parameters.AddWithValue("@rid", newRowId)
                                 cmdUpdNew.ExecuteNonQuery()
                             End Using
-
-                            ' Paso 3: Bitácora en polizas_HFM
-                            Dim grupo As String = String.Empty
-                            Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
-                                cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
-                                Dim val = cmdGrupo.ExecuteScalar()
-                                If val IsNot Nothing Then grupo = val.ToString()
-                            End Using
-
-                            Using cmdBit As New SQLiteCommand(
-                                "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
-                                "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
-                                cmdBit.Parameters.AddWithValue("@grp", grupo)
-                                cmdBit.Parameters.AddWithValue("@acc", ctaDest)
-                                If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
-                                    cmdBit.Parameters.AddWithValue("@deb", saldo)
-                                    cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
-                                Else
-                                    cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
-                                    cmdBit.Parameters.AddWithValue("@hab", saldo)
-                                End If
-                                cmdBit.ExecuteNonQuery()
-                            End Using
                         End If
+
+                        ' Ajustar saldo del registro padre
+                        Dim saldoPadre As Double = Convert.ToDouble(padre("saldo_acum"))
+                        Dim nuevoSaldoPadre As Double = saldoPadre
+                        If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
+                            nuevoSaldoPadre -= saldo
+                        Else
+                            nuevoSaldoPadre += saldo
+                        End If
+
+                        Using cmdUpdPadre As New SQLiteCommand(
+                            "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
+                            cmdUpdPadre.Parameters.AddWithValue("@s", nuevoSaldoPadre)
+                            cmdUpdPadre.Parameters.AddWithValue("@rid", padre("RowId"))
+                            cmdUpdPadre.ExecuteNonQuery()
+                        End Using
+
+                        ' Paso 3: Bitácora en polizas_HFM
+                        Dim grupo As String = String.Empty
+                        Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
+                            cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
+                            Dim val = cmdGrupo.ExecuteScalar()
+                            If val IsNot Nothing Then grupo = val.ToString()
+                        End Using
+
+                        Using cmdBit As New SQLiteCommand(
+                            "INSERT INTO polizas_HFM (Grupo, Descripcion, Account, Debe, Haber) " &
+                            "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
+                            cmdBit.Parameters.AddWithValue("@grp", grupo)
+                            cmdBit.Parameters.AddWithValue("@acc", ctaDest)
+                            If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
+                                cmdBit.Parameters.AddWithValue("@deb", saldo)
+                                cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
+                            Else
+                                cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
+                                cmdBit.Parameters.AddWithValue("@hab", saldo)
+                            End If
+                            cmdBit.ExecuteNonQuery()
+                        End Using
                     End If
                 Next
 
