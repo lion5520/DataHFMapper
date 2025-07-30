@@ -55,6 +55,7 @@ Partial Class Mapeo
         Me.Previsualiza_P1 = New System.Windows.Forms.PictureBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
+        Me.Reporte_Operaciones = New System.Windows.Forms.PictureBox()
         CType(Me.SAP_IN, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.flecha_1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.previsualiza__MatrizOperICP, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -73,6 +74,7 @@ Partial Class Mapeo
         CType(Me.previsualiza_General, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.Procesa_Polizas, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.Previsualiza_P1, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.Reporte_Operaciones, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'btnCargaFile
@@ -266,7 +268,7 @@ Partial Class Mapeo
         '
         Me.previsualiza_3.Cursor = System.Windows.Forms.Cursors.Default
         Me.previsualiza_3.Image = CType(resources.GetObject("previsualiza_3.Image"), System.Drawing.Image)
-        Me.previsualiza_3.Location = New System.Drawing.Point(726, 163)
+        Me.previsualiza_3.Location = New System.Drawing.Point(636, 163)
         Me.previsualiza_3.Name = "previsualiza_3"
         Me.previsualiza_3.Size = New System.Drawing.Size(42, 43)
         Me.previsualiza_3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -408,12 +410,25 @@ Partial Class Mapeo
         Me.Label2.TabIndex = 30
         Me.Label2.Text = "Transforma a TXT SIFIC"
         '
+        'Reporte_Operaciones
+        '
+        Me.Reporte_Operaciones.Cursor = System.Windows.Forms.Cursors.Default
+        Me.Reporte_Operaciones.Image = CType(resources.GetObject("Reporte_Operaciones.Image"), System.Drawing.Image)
+        Me.Reporte_Operaciones.Location = New System.Drawing.Point(780, 132)
+        Me.Reporte_Operaciones.Name = "Reporte_Operaciones"
+        Me.Reporte_Operaciones.Size = New System.Drawing.Size(76, 74)
+        Me.Reporte_Operaciones.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.Reporte_Operaciones.TabIndex = 32
+        Me.Reporte_Operaciones.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.Reporte_Operaciones, "Genera Reporte de Operaciones")
+        '
         'Mapeo
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1282, 590)
         Me.ControlBox = False
+        Me.Controls.Add(Me.Reporte_Operaciones)
         Me.Controls.Add(Me.Previsualiza_P1)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Label1)
@@ -466,6 +481,7 @@ Partial Class Mapeo
         CType(Me.previsualiza_General, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.Procesa_Polizas, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.Previsualiza_P1, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.Reporte_Operaciones, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -502,4 +518,5 @@ Partial Class Mapeo
     Friend WithEvents Label1 As Label
     Friend WithEvents Label2 As Label
     Friend WithEvents Previsualiza_P1 As PictureBox
+    Friend WithEvents Reporte_Operaciones As PictureBox
 End Class

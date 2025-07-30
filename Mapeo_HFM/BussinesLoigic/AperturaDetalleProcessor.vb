@@ -60,10 +60,16 @@ Public Class AperturaDetalleProcessor
                     Dim saldo As Double = Convert.ToDouble(repRow("Saldo"))
                     Dim ctaOracle As String = repRow("Cuenta_Parte_Relacionada").ToString()
 
+                    If cta = "210601035" And soc = "814" Then
+                        If ic = "41" Then
+                            Dim concat = soc
+                        End If
+                    End If
+
                     Dim dtPadre As New DataTable()
                     Using cmdFind As New SQLiteCommand(
                         "SELECT rowid AS RowId, * FROM t_in_sap " &
-                        "WHERE LTRIM(sociedad,'0')=@soc AND LTRIM(numero_cuenta,'0')=@cta LIMIT 1;", conn, tran)
+                        "WHERE LTRIM(sociedad,'0')=@soc AND numero_cuenta=@cta LIMIT 1;", conn, tran)
                         cmdFind.Parameters.AddWithValue("@soc", soc)
                         cmdFind.Parameters.AddWithValue("@cta", cta)
                         Using da As New SQLiteDataAdapter(cmdFind)
@@ -96,12 +102,13 @@ Public Class AperturaDetalleProcessor
                     Dim sqlClas As String
                     If hasOperacion Then
                         sqlClas = "SELECT Entidad_i, CUENTA_i, Operacion_Destino FROM cat_deudor_acredor " &
-                                  "WHERE LTRIM(ICP_i,'0')=@ic AND LTRIM(CUENTA_d,'0')=@cta LIMIT 1;"
+                                  "WHERE LTRIM(Entidad_d,'0')=@soc AND LTRIM(ICP_i,'0')=@ic AND CUENTA_d=@cta LIMIT 1;"
                     Else
                         sqlClas = "SELECT Entidad_i, CUENTA_i, Tipo_i AS Operacion_Destino FROM cat_deudor_acredor " &
-                                  "WHERE LTRIM(ICP_i,'0')=@ic AND LTRIM(CUENTA_d,'0')=@cta LIMIT 1;"
+                                  "WHERE LTRIM(Entidad_d,'0')=@soc AND LTRIM(ICP_i,'0')=@ic AND CUENTA_d=@cta LIMIT 1;"
                     End If
                     Using cmdClas As New SQLiteCommand(sqlClas, conn, tran)
+                        cmdClas.Parameters.AddWithValue("@soc", soc)
                         cmdClas.Parameters.AddWithValue("@ic", ic)
                         cmdClas.Parameters.AddWithValue("@cta", cta)
                         Using da As New SQLiteDataAdapter(cmdClas)
@@ -118,7 +125,7 @@ Public Class AperturaDetalleProcessor
                         Dim dtDest As New DataTable()
                         Using cmdDest As New SQLiteCommand(
                             "SELECT rowid AS RowId, saldo_acum FROM t_in_sap " &
-                            "WHERE LTRIM(sociedad,'0')=@sd AND (deudor_acreedor_2=@ic OR deudor_acreedor_2='ICP_NONE') " &
+                            "WHERE LTRIM(sociedad,'0')=@sd AND (LTRIM(deudor_acreedor_2,'0')=@ic OR deudor_acreedor_2='ICP_NONE') " &
                             "LIMIT 1;", conn, tran)
                             cmdDest.Parameters.AddWithValue("@sd", socDest)
                             cmdDest.Parameters.AddWithValue("@ic", ic)

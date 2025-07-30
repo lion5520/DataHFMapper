@@ -117,9 +117,16 @@ Public Class ReporteICLoader
                 Dim cuenta As String = If(vCta?.ToString().Trim(), "")
                 Dim cuentaOracle As String = If(vCtaOra?.ToString().Trim(), "")
                 Dim saldo As Double
-                If vSld IsNot Nothing AndAlso Not Double.TryParse(vSld.ToString(), saldo) Then
+
+                ' 1) Validar y parsear
+                If vSld IsNot Nothing AndAlso Double.TryParse(vSld.ToString(), saldo) Then
+                    ' saldo contiene el valor parseado
+                Else
                     saldo = 0
                 End If
+
+                ' 2) Redondear a 2 decimales
+                saldo = Math.Round(saldo, 2, MidpointRounding.AwayFromZero)
 
                 ' Insertar si sociedad y cuenta no están vacíos
                 If sociedad <> "" AndAlso cuenta <> "" Then
