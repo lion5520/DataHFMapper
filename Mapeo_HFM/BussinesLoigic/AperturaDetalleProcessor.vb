@@ -33,11 +33,12 @@ Public Class AperturaDetalleProcessor
             conn.Open()
             Using tran = conn.BeginTransaction()
 
+                'Obtiene las operaciones complementarias 
                 Dim dtRep As New DataTable()
                 Using cmdRep As New SQLiteCommand(
                     "SELECT LTRIM(ICSap,'0') AS ICSap, " &
                     "       LTRIM(SociedadSap,'0') AS SociedadSap, " &
-                    "       LTRIM(CuentaSap,'0') AS CuentaSap, " &
+                    "       CuentaSap, " &
                     "       Cuenta_Parte_Relacionada, " &
                     "       Saldo " &
                     "  FROM reporte_IC", conn, tran)
@@ -50,9 +51,7 @@ Public Class AperturaDetalleProcessor
                                .Where(Function(c) c <> "rowid" AndAlso c <> "id") _
                                .ToList()
 
-                ' Verificar si cat_deudor_acredor cuenta con la columna Operacion_Destino
-                Dim hasOperacion As Boolean = ColumnExists(conn, tran, "cat_deudor_acredor", "Operacion_Destino")
-
+                'Por cada registro, busca a su registro padre [ICP None]
                 For Each repRow As DataRow In dtRep.Rows
                     Dim soc As String = NormalizeKey(repRow("SociedadSap").ToString())
                     Dim cta As String = NormalizeKey(repRow("CuentaSap").ToString())
@@ -60,16 +59,10 @@ Public Class AperturaDetalleProcessor
                     Dim saldo As Double = Convert.ToDouble(repRow("Saldo"))
                     Dim ctaOracle As String = repRow("Cuenta_Parte_Relacionada").ToString()
 
-                    If cta = "210601035" And soc = "814" Then
-                        If ic = "41" Then
-                            Dim concat = soc
-                        End If
-                    End If
-
                     Dim dtPadre As New DataTable()
                     Using cmdFind As New SQLiteCommand(
                         "SELECT rowid AS RowId, * FROM t_in_sap " &
-                        "WHERE LTRIM(sociedad,'0')=@soc AND numero_cuenta=@cta LIMIT 1;", conn, tran)
+                        "WHERE LTRIM(sociedad,'0')=@soc AND numero_cuenta=@cta AND deudor_acreedor_2='[ICP None]';", conn, tran)
                         cmdFind.Parameters.AddWithValue("@soc", soc)
                         cmdFind.Parameters.AddWithValue("@cta", cta)
                         Using da As New SQLiteDataAdapter(cmdFind)
@@ -81,7 +74,82 @@ Public Class AperturaDetalleProcessor
                     End If
                     Dim padre = dtPadre.Rows(0)
 
-                    ' Paso 1: Insertar copia ajustando IC y saldo
+
+                    'Busca cuenta equivalente de Reclasificación de la operacion 
+                    Dim dtClas As New DataTable()
+                    Dim sqlClas As String
+
+                    sqlClas = "SELECT LTRIM(Entidad_i,'0'), CUENTA_i, ICP_i, Tipo_i AS Operacion_Destino FROM cat_deudor_acredor " &
+                                  "WHERE LTRIM(Entidad_d,'0')=@soc AND LTRIM(ICP_i,'0')=@ic AND CUENTA_d=@cta ;"
+
+                    Using cmdClas As New SQLiteCommand(sqlClas, conn, tran)
+                        cmdClas.Parameters.AddWithValue("@soc", soc)
+                        cmdClas.Parameters.AddWithValue("@ic", ic)
+                        cmdClas.Parameters.AddWithValue("@cta", cta)
+                        Using da As New SQLiteDataAdapter(cmdClas)
+                            da.Fill(dtClas)
+                        End Using
+                    End Using
+
+
+                    Dim Valida As Boolean = True
+                    Dim ctaDest As String = ""
+                    Dim operacionDest As String = ""
+                    If dtClas.Rows.Count > 0 Then
+                        Dim clas_cuentaEquivalente = dtClas.Rows(0)
+                        ctaDest = NormalizeKey(clas_cuentaEquivalente("CUENTA_i").ToString())
+                        operacionDest = NormalizeKey(clas_cuentaEquivalente("Operacion_Destino").ToString())
+                    Else
+                        ctaDest = "Reclasific N/D"
+                        Valida = False
+                    End If
+
+
+                    'Obtiene datos de cuenta de reclacificacion si existen en lay out orinial 
+                    ' Variables para almacenar los datos retorno
+                    Dim textoExplicativo As String = String.Empty
+                    Dim cuentaMayorHfm As String = String.Empty
+                    Dim descripcionCuentaSific As String = String.Empty
+                    Dim descripcionCuentaOracle As String = String.Empty
+                    Dim agrupadorTipo As String = String.Empty
+                    Dim agrupadorCuenta As String = String.Empty
+
+                    ' Preparamos el comando para traer solo los campos deseados
+                    Dim dtCampos As New DataTable()
+                    Using cmdFind As New SQLiteCommand(
+                                        "SELECT 
+                                            texto_explicativo, 
+                                            cuenta_mayor_hfm, 
+                                            descripcion_cuenta_sific, 
+                                            descripcion_cuenta_oracle, 
+                                            agrupador_tipo, 
+                                            agrupador_cuenta 
+                                         FROM t_in_sap 
+                                         WHERE numero_cuenta = @cta;", conn, tran)
+                        cmdFind.Parameters.AddWithValue("@cta", ctaDest)
+
+                        Using da As New SQLiteDataAdapter(cmdFind)
+                            da.Fill(dtCampos)
+                        End Using
+                    End Using
+
+                    ' Si existe al menos un registro, asignamos cada campo a su variable
+                    If dtCampos.Rows.Count > 0 Then
+                        Dim row = dtCampos.Rows(0)
+                        textoExplicativo = row.Field(Of String)("texto_explicativo")
+                        cuentaMayorHfm = row.Field(Of String)("cuenta_mayor_hfm")
+                        descripcionCuentaSific = row.Field(Of String)("descripcion_cuenta_sific")
+                        descripcionCuentaOracle = row.Field(Of String)("descripcion_cuenta_oracle")
+                        agrupadorTipo = row.Field(Of String)("agrupador_tipo")
+                        agrupadorCuenta = row.Field(Of String)("agrupador_cuenta")
+                    Else
+                        Valida = False
+                    End If
+
+                    ' ---- ---------------   ----------------  ---
+
+
+                    ' Insertar copia ajustando IC y saldo
                     Dim colNames = String.Join(", ", cols)
                     Dim paramNames = String.Join(", ", cols.Select(Function(c) "@" & c))
                     Dim sqlIns = $"INSERT INTO t_in_sap ({colNames}) VALUES ({paramNames});"
@@ -93,91 +161,37 @@ Public Class AperturaDetalleProcessor
                         cmdIns.Parameters("@deudor_acreedor_2").Value = ic
                         cmdIns.Parameters("@saldo_acum").Value = saldo
                         cmdIns.Parameters("@cuenta_oracle").Value = ctaOracle
+                        cmdIns.Parameters("@numero_cuenta").Value = ctaDest
+                        cmdIns.Parameters("@texto_explicativo").Value = $"Reclacific N/A Desc {cta}-{ctaDest}"
+                        cmdIns.Parameters("@asignacion").Value = $"Reclacificacion {cta}-{ctaDest}"
+
+                        If Valida Then
+                            cmdIns.Parameters("@texto_explicativo").Value = textoExplicativo
+                            cmdIns.Parameters("@cuenta_mayor_hfm").Value = cuentaMayorHfm
+                            cmdIns.Parameters("@descripcion_cuenta_sific").Value = descripcionCuentaSific
+                            cmdIns.Parameters("@descripcion_cuenta_oracle").Value = descripcionCuentaOracle
+                            cmdIns.Parameters("@agrupador_tipo").Value = agrupadorTipo
+                            cmdIns.Parameters("@agrupador_cuenta").Value = agrupadorCuenta
+                        End If
+
+
                         cmdIns.ExecuteNonQuery()
                         newRowId = conn.LastInsertRowId
                     End Using
 
-                    ' Paso 2: Reclasificación
-                    Dim dtClas As New DataTable()
-                    Dim sqlClas As String
-                    If hasOperacion Then
-                        sqlClas = "SELECT Entidad_i, CUENTA_i, Operacion_Destino FROM cat_deudor_acredor " &
-                                  "WHERE LTRIM(Entidad_d,'0')=@soc AND LTRIM(ICP_i,'0')=@ic AND CUENTA_d=@cta LIMIT 1;"
-                    Else
-                        sqlClas = "SELECT Entidad_i, CUENTA_i, Tipo_i AS Operacion_Destino FROM cat_deudor_acredor " &
-                                  "WHERE LTRIM(Entidad_d,'0')=@soc AND LTRIM(ICP_i,'0')=@ic AND CUENTA_d=@cta LIMIT 1;"
-                    End If
-                    Using cmdClas As New SQLiteCommand(sqlClas, conn, tran)
-                        cmdClas.Parameters.AddWithValue("@soc", soc)
-                        cmdClas.Parameters.AddWithValue("@ic", ic)
-                        cmdClas.Parameters.AddWithValue("@cta", cta)
-                        Using da As New SQLiteDataAdapter(cmdClas)
-                            da.Fill(dtClas)
-                        End Using
+                    'Actualiza saldo en registro padre, quitando la poarte proporcional de la oepracion integrada
+                    Dim nuevoSaldoPadre As Double = padre("saldo_acum") - saldo
+
+                    Using cmdUpdPadre As New SQLiteCommand(
+                            "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
+                        cmdUpdPadre.Parameters.AddWithValue("@s", nuevoSaldoPadre)
+                        cmdUpdPadre.Parameters.AddWithValue("@rid", padre("RowId"))
+                        cmdUpdPadre.ExecuteNonQuery()
                     End Using
 
-                    If dtClas.Rows.Count > 0 Then
-                        Dim clas = dtClas.Rows(0)
-                        Dim socDest As String = NormalizeKey(clas("Entidad_i").ToString())
-                        Dim ctaDest As String = NormalizeKey(clas("CUENTA_i").ToString())
-                        Dim operacion As String = clas("Operacion_Destino").ToString()
 
-                        Dim dtDest As New DataTable()
-                        Using cmdDest As New SQLiteCommand(
-                            "SELECT rowid AS RowId, saldo_acum FROM t_in_sap " &
-                            "WHERE LTRIM(sociedad,'0')=@sd AND (LTRIM(deudor_acreedor_2,'0')=@ic OR deudor_acreedor_2='ICP_NONE') " &
-                            "LIMIT 1;", conn, tran)
-                            cmdDest.Parameters.AddWithValue("@sd", socDest)
-                            cmdDest.Parameters.AddWithValue("@ic", ic)
-                            Using da As New SQLiteDataAdapter(cmdDest)
-                                da.Fill(dtDest)
-                            End Using
-                        End Using
-
-                        If dtDest.Rows.Count > 0 Then
-                            Dim destRow = dtDest.Rows(0)
-                            Dim saldoActual As Double = Convert.ToDouble(destRow("saldo_acum"))
-                            Dim nuevoSaldo As Double = saldoActual
-                            If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
-                                nuevoSaldo -= saldo
-                            Else
-                                nuevoSaldo += saldo
-                            End If
-
-                            Using cmdUpd As New SQLiteCommand(
-                                "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
-                                cmdUpd.Parameters.AddWithValue("@s", nuevoSaldo)
-                                cmdUpd.Parameters.AddWithValue("@rid", destRow("RowId"))
-                                cmdUpd.ExecuteNonQuery()
-                            End Using
-
-                            Using cmdUpdNew As New SQLiteCommand(
-                                "UPDATE t_in_sap SET numero_cuenta=@cta, sociedad=@soc WHERE rowid=@rid;", conn, tran)
-                                cmdUpdNew.Parameters.AddWithValue("@cta", ctaDest)
-                                cmdUpdNew.Parameters.AddWithValue("@soc", socDest)
-                                cmdUpdNew.Parameters.AddWithValue("@rid", newRowId)
-                                cmdUpdNew.ExecuteNonQuery()
-                            End Using
-                        End If
-
-                        ' Ajustar saldo del registro padre
-                        Dim saldoPadre As Double = Convert.ToDouble(padre("saldo_acum"))
-                        Dim nuevoSaldoPadre As Double = saldoPadre
-                        If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
-                            nuevoSaldoPadre -= saldo
-                        Else
-                            nuevoSaldoPadre += saldo
-                        End If
-
-                        Using cmdUpdPadre As New SQLiteCommand(
-                            "UPDATE t_in_sap SET saldo_acum=@s WHERE rowid=@rid;", conn, tran)
-                            cmdUpdPadre.Parameters.AddWithValue("@s", nuevoSaldoPadre)
-                            cmdUpdPadre.Parameters.AddWithValue("@rid", padre("RowId"))
-                            cmdUpdPadre.ExecuteNonQuery()
-                        End Using
-
-                        ' Paso 3: Bitácora en polizas_HFM
-                        Dim grupo As String = String.Empty
+                    'Agrega operacion en Bitácora en polizas_HFM
+                    Dim grupo As String = String.Empty
                         Using cmdGrupo As New SQLiteCommand("SELECT GRUPO FROM GL_ICP_Grupos WHERE GL_ICP=@key LIMIT 1;", conn, tran)
                             cmdGrupo.Parameters.AddWithValue("@key", ctaDest)
                             Dim val = cmdGrupo.ExecuteScalar()
@@ -189,16 +203,16 @@ Public Class AperturaDetalleProcessor
                             "VALUES (@grp,'RECLACIFICACION',@acc,@deb,@hab);", conn, tran)
                             cmdBit.Parameters.AddWithValue("@grp", grupo)
                             cmdBit.Parameters.AddWithValue("@acc", ctaDest)
-                            If String.Equals(operacion, "C", StringComparison.OrdinalIgnoreCase) Then
-                                cmdBit.Parameters.AddWithValue("@deb", saldo)
-                                cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
-                            Else
-                                cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
+                        If String.Equals(operacionDest, "C", StringComparison.OrdinalIgnoreCase) Then
+                            cmdBit.Parameters.AddWithValue("@deb", saldo)
+                            cmdBit.Parameters.AddWithValue("@hab", DBNull.Value)
+                        Else
+                            cmdBit.Parameters.AddWithValue("@deb", DBNull.Value)
                                 cmdBit.Parameters.AddWithValue("@hab", saldo)
                             End If
                             cmdBit.ExecuteNonQuery()
                         End Using
-                    End If
+
                 Next
 
                 tran.Commit()
