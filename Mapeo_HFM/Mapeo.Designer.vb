@@ -53,9 +53,15 @@ Partial Class Mapeo
         Me.previsualiza_General = New System.Windows.Forms.PictureBox()
         Me.Procesa_Polizas = New System.Windows.Forms.PictureBox()
         Me.Previsualiza_P1 = New System.Windows.Forms.PictureBox()
+        Me.Reporte_Operaciones = New System.Windows.Forms.PictureBox()
+        Me.MatrizCostoIngreso_up = New System.Windows.Forms.PictureBox()
+        Me.procesa_CostoIngreso = New System.Windows.Forms.PictureBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
-        Me.Reporte_Operaciones = New System.Windows.Forms.PictureBox()
+        Me.Label9 = New System.Windows.Forms.Label()
+        Me.PictureBox4 = New System.Windows.Forms.PictureBox()
+        Me.PictureBox5 = New System.Windows.Forms.PictureBox()
+        Me.Label10 = New System.Windows.Forms.Label()
         CType(Me.SAP_IN, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.flecha_1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.previsualiza__MatrizOperICP, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -75,6 +81,10 @@ Partial Class Mapeo
         CType(Me.Procesa_Polizas, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.Previsualiza_P1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.Reporte_Operaciones, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.MatrizCostoIngreso_up, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.procesa_CostoIngreso, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.PictureBox4, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'btnCargaFile
@@ -92,9 +102,9 @@ Partial Class Mapeo
         '
         Me.SAP_IN.Cursor = System.Windows.Forms.Cursors.Hand
         Me.SAP_IN.Image = CType(resources.GetObject("SAP_IN.Image"), System.Drawing.Image)
-        Me.SAP_IN.Location = New System.Drawing.Point(23, 204)
+        Me.SAP_IN.Location = New System.Drawing.Point(12, 215)
         Me.SAP_IN.Name = "SAP_IN"
-        Me.SAP_IN.Size = New System.Drawing.Size(119, 122)
+        Me.SAP_IN.Size = New System.Drawing.Size(94, 96)
         Me.SAP_IN.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.SAP_IN.TabIndex = 1
         Me.SAP_IN.TabStop = False
@@ -103,9 +113,9 @@ Partial Class Mapeo
         'flecha_1
         '
         Me.flecha_1.Image = CType(resources.GetObject("flecha_1.Image"), System.Drawing.Image)
-        Me.flecha_1.Location = New System.Drawing.Point(144, 248)
+        Me.flecha_1.Location = New System.Drawing.Point(106, 248)
         Me.flecha_1.Name = "flecha_1"
-        Me.flecha_1.Size = New System.Drawing.Size(84, 42)
+        Me.flecha_1.Size = New System.Drawing.Size(61, 42)
         Me.flecha_1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.flecha_1.TabIndex = 2
         Me.flecha_1.TabStop = False
@@ -115,7 +125,7 @@ Partial Class Mapeo
         Me.previsualiza__MatrizOperICP.Cursor = System.Windows.Forms.Cursors.Hand
         Me.previsualiza__MatrizOperICP.Enabled = False
         Me.previsualiza__MatrizOperICP.Image = CType(resources.GetObject("previsualiza__MatrizOperICP.Image"), System.Drawing.Image)
-        Me.previsualiza__MatrizOperICP.Location = New System.Drawing.Point(293, 163)
+        Me.previsualiza__MatrizOperICP.Location = New System.Drawing.Point(196, 172)
         Me.previsualiza__MatrizOperICP.Name = "previsualiza__MatrizOperICP"
         Me.previsualiza__MatrizOperICP.Size = New System.Drawing.Size(43, 43)
         Me.previsualiza__MatrizOperICP.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -128,9 +138,9 @@ Partial Class Mapeo
         Me.procesa_1.Cursor = System.Windows.Forms.Cursors.Default
         Me.procesa_1.Enabled = False
         Me.procesa_1.Image = CType(resources.GetObject("procesa_1.Image"), System.Drawing.Image)
-        Me.procesa_1.Location = New System.Drawing.Point(422, 207)
+        Me.procesa_1.Location = New System.Drawing.Point(303, 221)
         Me.procesa_1.Name = "procesa_1"
-        Me.procesa_1.Size = New System.Drawing.Size(133, 104)
+        Me.procesa_1.Size = New System.Drawing.Size(113, 96)
         Me.procesa_1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.procesa_1.TabIndex = 4
         Me.procesa_1.TabStop = False
@@ -150,10 +160,10 @@ Partial Class Mapeo
         'lbl_conversion_icp
         '
         Me.lbl_conversion_icp.AutoSize = True
-        Me.lbl_conversion_icp.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lbl_conversion_icp.Location = New System.Drawing.Point(413, 320)
+        Me.lbl_conversion_icp.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lbl_conversion_icp.Location = New System.Drawing.Point(285, 316)
         Me.lbl_conversion_icp.Name = "lbl_conversion_icp"
-        Me.lbl_conversion_icp.Size = New System.Drawing.Size(182, 48)
+        Me.lbl_conversion_icp.Size = New System.Drawing.Size(168, 45)
         Me.lbl_conversion_icp.TabIndex = 6
         Me.lbl_conversion_icp.Text = "Integracion Operaciones " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Complentarias ICP" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Reclasificaciones" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
         '
@@ -161,7 +171,7 @@ Partial Class Mapeo
         '
         Me.Label3.AutoSize = True
         Me.Label3.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label3.Location = New System.Drawing.Point(644, 332)
+        Me.Label3.Location = New System.Drawing.Point(771, 316)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(140, 16)
         Me.Label3.TabIndex = 7
@@ -212,9 +222,9 @@ Partial Class Mapeo
         'flecha_2
         '
         Me.flecha_2.Image = CType(resources.GetObject("flecha_2.Image"), System.Drawing.Image)
-        Me.flecha_2.Location = New System.Drawing.Point(755, 243)
+        Me.flecha_2.Location = New System.Drawing.Point(929, 248)
         Me.flecha_2.Name = "flecha_2"
-        Me.flecha_2.Size = New System.Drawing.Size(101, 47)
+        Me.flecha_2.Size = New System.Drawing.Size(61, 42)
         Me.flecha_2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.flecha_2.TabIndex = 12
         Me.flecha_2.TabStop = False
@@ -223,9 +233,9 @@ Partial Class Mapeo
         '
         Me.procesa_2.Cursor = System.Windows.Forms.Cursors.Default
         Me.procesa_2.Image = CType(resources.GetObject("procesa_2.Image"), System.Drawing.Image)
-        Me.procesa_2.Location = New System.Drawing.Point(790, 163)
+        Me.procesa_2.Location = New System.Drawing.Point(929, 187)
         Me.procesa_2.Name = "procesa_2"
-        Me.procesa_2.Size = New System.Drawing.Size(231, 198)
+        Me.procesa_2.Size = New System.Drawing.Size(191, 164)
         Me.procesa_2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
         Me.procesa_2.TabIndex = 13
         Me.procesa_2.TabStop = False
@@ -246,19 +256,19 @@ Partial Class Mapeo
         '
         Me.Label7.AutoSize = True
         Me.Label7.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label7.Location = New System.Drawing.Point(799, 332)
+        Me.Label7.Location = New System.Drawing.Point(984, 316)
         Me.Label7.Name = "Label7"
-        Me.Label7.Size = New System.Drawing.Size(222, 16)
+        Me.Label7.Size = New System.Drawing.Size(107, 32)
         Me.Label7.TabIndex = 15
-        Me.Label7.Text = "Presentacion de saldos finales"
+        Me.Label7.Text = "Presentacion" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Saldos finales"
         '
         'MatrizOperICP_up
         '
         Me.MatrizOperICP_up.Cursor = System.Windows.Forms.Cursors.Hand
         Me.MatrizOperICP_up.Image = CType(resources.GetObject("MatrizOperICP_up.Image"), System.Drawing.Image)
-        Me.MatrizOperICP_up.Location = New System.Drawing.Point(225, 206)
+        Me.MatrizOperICP_up.Location = New System.Drawing.Point(166, 233)
         Me.MatrizOperICP_up.Name = "MatrizOperICP_up"
-        Me.MatrizOperICP_up.Size = New System.Drawing.Size(103, 111)
+        Me.MatrizOperICP_up.Size = New System.Drawing.Size(73, 74)
         Me.MatrizOperICP_up.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.MatrizOperICP_up.TabIndex = 17
         Me.MatrizOperICP_up.TabStop = False
@@ -268,7 +278,7 @@ Partial Class Mapeo
         '
         Me.previsualiza_3.Cursor = System.Windows.Forms.Cursors.Default
         Me.previsualiza_3.Image = CType(resources.GetObject("previsualiza_3.Image"), System.Drawing.Image)
-        Me.previsualiza_3.Location = New System.Drawing.Point(636, 163)
+        Me.previsualiza_3.Location = New System.Drawing.Point(843, 172)
         Me.previsualiza_3.Name = "previsualiza_3"
         Me.previsualiza_3.Size = New System.Drawing.Size(42, 43)
         Me.previsualiza_3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -280,18 +290,18 @@ Partial Class Mapeo
         '
         Me.Label8.AutoSize = True
         Me.Label8.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label8.Location = New System.Drawing.Point(218, 320)
+        Me.Label8.Location = New System.Drawing.Point(142, 316)
         Me.Label8.Name = "Label8"
-        Me.Label8.Size = New System.Drawing.Size(125, 32)
+        Me.Label8.Size = New System.Drawing.Size(123, 32)
         Me.Label8.TabIndex = 20
-        Me.Label8.Text = "Complemento " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Operaciones ICP"
+        Me.Label8.Text = "Integra Matriz " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Cuenta Corriente"
         '
         'flecha_3
         '
         Me.flecha_3.Image = CType(resources.GetObject("flecha_3.Image"), System.Drawing.Image)
-        Me.flecha_3.Location = New System.Drawing.Point(969, 248)
+        Me.flecha_3.Location = New System.Drawing.Point(1073, 248)
         Me.flecha_3.Name = "flecha_3"
-        Me.flecha_3.Size = New System.Drawing.Size(122, 42)
+        Me.flecha_3.Size = New System.Drawing.Size(61, 42)
         Me.flecha_3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.flecha_3.TabIndex = 21
         Me.flecha_3.TabStop = False
@@ -300,9 +310,9 @@ Partial Class Mapeo
         '
         Me.txt_sific.Cursor = System.Windows.Forms.Cursors.Default
         Me.txt_sific.Image = CType(resources.GetObject("txt_sific.Image"), System.Drawing.Image)
-        Me.txt_sific.Location = New System.Drawing.Point(1094, 212)
+        Me.txt_sific.Location = New System.Drawing.Point(1134, 215)
         Me.txt_sific.Name = "txt_sific"
-        Me.txt_sific.Size = New System.Drawing.Size(110, 105)
+        Me.txt_sific.Size = New System.Drawing.Size(98, 96)
         Me.txt_sific.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.txt_sific.TabIndex = 22
         Me.txt_sific.TabStop = False
@@ -311,7 +321,7 @@ Partial Class Mapeo
         '
         Me.previsualiza_5.Cursor = System.Windows.Forms.Cursors.Hand
         Me.previsualiza_5.Image = CType(resources.GetObject("previsualiza_5.Image"), System.Drawing.Image)
-        Me.previsualiza_5.Location = New System.Drawing.Point(1191, 288)
+        Me.previsualiza_5.Location = New System.Drawing.Point(1219, 288)
         Me.previsualiza_5.Name = "previsualiza_5"
         Me.previsualiza_5.Size = New System.Drawing.Size(42, 41)
         Me.previsualiza_5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -323,9 +333,9 @@ Partial Class Mapeo
         '
         Me.flecha_2_2.Cursor = System.Windows.Forms.Cursors.Default
         Me.flecha_2_2.Image = CType(resources.GetObject("flecha_2_2.Image"), System.Drawing.Image)
-        Me.flecha_2_2.Location = New System.Drawing.Point(559, 243)
+        Me.flecha_2_2.Location = New System.Drawing.Point(416, 248)
         Me.flecha_2_2.Name = "flecha_2_2"
-        Me.flecha_2_2.Size = New System.Drawing.Size(86, 47)
+        Me.flecha_2_2.Size = New System.Drawing.Size(61, 42)
         Me.flecha_2_2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.flecha_2_2.TabIndex = 24
         Me.flecha_2_2.TabStop = False
@@ -334,9 +344,9 @@ Partial Class Mapeo
         '
         Me.flecha_2_1.Cursor = System.Windows.Forms.Cursors.Default
         Me.flecha_2_1.Image = CType(resources.GetObject("flecha_2_1.Image"), System.Drawing.Image)
-        Me.flecha_2_1.Location = New System.Drawing.Point(327, 243)
+        Me.flecha_2_1.Location = New System.Drawing.Point(241, 248)
         Me.flecha_2_1.Name = "flecha_2_1"
-        Me.flecha_2_1.Size = New System.Drawing.Size(93, 47)
+        Me.flecha_2_1.Size = New System.Drawing.Size(61, 42)
         Me.flecha_2_1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.flecha_2_1.TabIndex = 25
         Me.flecha_2_1.TabStop = False
@@ -345,7 +355,7 @@ Partial Class Mapeo
         '
         Me.previsualiza_4.Cursor = System.Windows.Forms.Cursors.Default
         Me.previsualiza_4.Image = CType(resources.GetObject("previsualiza_4.Image"), System.Drawing.Image)
-        Me.previsualiza_4.Location = New System.Drawing.Point(931, 163)
+        Me.previsualiza_4.Location = New System.Drawing.Point(1049, 172)
         Me.previsualiza_4.Name = "previsualiza_4"
         Me.previsualiza_4.Size = New System.Drawing.Size(42, 43)
         Me.previsualiza_4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -369,9 +379,9 @@ Partial Class Mapeo
         '
         Me.Procesa_Polizas.Cursor = System.Windows.Forms.Cursors.Default
         Me.Procesa_Polizas.Image = CType(resources.GetObject("Procesa_Polizas.Image"), System.Drawing.Image)
-        Me.Procesa_Polizas.Location = New System.Drawing.Point(647, 208)
+        Me.Procesa_Polizas.Location = New System.Drawing.Point(788, 221)
         Me.Procesa_Polizas.Name = "Procesa_Polizas"
-        Me.Procesa_Polizas.Size = New System.Drawing.Size(102, 104)
+        Me.Procesa_Polizas.Size = New System.Drawing.Size(96, 96)
         Me.Procesa_Polizas.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
         Me.Procesa_Polizas.TabIndex = 28
         Me.Procesa_Polizas.TabStop = False
@@ -382,7 +392,7 @@ Partial Class Mapeo
         Me.Previsualiza_P1.Cursor = System.Windows.Forms.Cursors.Default
         Me.Previsualiza_P1.Enabled = False
         Me.Previsualiza_P1.Image = CType(resources.GetObject("Previsualiza_P1.Image"), System.Drawing.Image)
-        Me.Previsualiza_P1.Location = New System.Drawing.Point(518, 163)
+        Me.Previsualiza_P1.Location = New System.Drawing.Point(374, 172)
         Me.Previsualiza_P1.Name = "Previsualiza_P1"
         Me.Previsualiza_P1.Size = New System.Drawing.Size(43, 43)
         Me.Previsualiza_P1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -390,11 +400,49 @@ Partial Class Mapeo
         Me.Previsualiza_P1.TabStop = False
         Me.ToolTip1.SetToolTip(Me.Previsualiza_P1, "Punto de Previsualización")
         '
+        'Reporte_Operaciones
+        '
+        Me.Reporte_Operaciones.Cursor = System.Windows.Forms.Cursors.Default
+        Me.Reporte_Operaciones.Image = CType(resources.GetObject("Reporte_Operaciones.Image"), System.Drawing.Image)
+        Me.Reporte_Operaciones.Location = New System.Drawing.Point(914, 107)
+        Me.Reporte_Operaciones.Name = "Reporte_Operaciones"
+        Me.Reporte_Operaciones.Size = New System.Drawing.Size(76, 74)
+        Me.Reporte_Operaciones.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.Reporte_Operaciones.TabIndex = 32
+        Me.Reporte_Operaciones.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.Reporte_Operaciones, "Genera Reporte de Operaciones")
+        '
+        'MatrizCostoIngreso_up
+        '
+        Me.MatrizCostoIngreso_up.Cursor = System.Windows.Forms.Cursors.Hand
+        Me.MatrizCostoIngreso_up.Image = CType(resources.GetObject("MatrizCostoIngreso_up.Image"), System.Drawing.Image)
+        Me.MatrizCostoIngreso_up.Location = New System.Drawing.Point(476, 233)
+        Me.MatrizCostoIngreso_up.Name = "MatrizCostoIngreso_up"
+        Me.MatrizCostoIngreso_up.Size = New System.Drawing.Size(73, 74)
+        Me.MatrizCostoIngreso_up.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.MatrizCostoIngreso_up.TabIndex = 33
+        Me.MatrizCostoIngreso_up.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.MatrizCostoIngreso_up, "Carga Operaciones IC")
+        '
+        'procesa_CostoIngreso
+        '
+        Me.procesa_CostoIngreso.Cursor = System.Windows.Forms.Cursors.Default
+        Me.procesa_CostoIngreso.Enabled = False
+        Me.procesa_CostoIngreso.Image = CType(resources.GetObject("procesa_CostoIngreso.Image"), System.Drawing.Image)
+        Me.procesa_CostoIngreso.Location = New System.Drawing.Point(612, 221)
+        Me.procesa_CostoIngreso.Name = "procesa_CostoIngreso"
+        Me.procesa_CostoIngreso.Size = New System.Drawing.Size(113, 96)
+        Me.procesa_CostoIngreso.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.procesa_CostoIngreso.TabIndex = 34
+        Me.procesa_CostoIngreso.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.procesa_CostoIngreso, "Ejecuta las tareas:" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "         * Integracion de saldos Costo Ingreso" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "         * R" &
+        "eclasificación ")
+        '
         'Label1
         '
         Me.Label1.AutoSize = True
         Me.Label1.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label1.Location = New System.Drawing.Point(35, 332)
+        Me.Label1.Location = New System.Drawing.Point(9, 316)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(107, 32)
         Me.Label1.TabIndex = 29
@@ -404,23 +452,53 @@ Partial Class Mapeo
         '
         Me.Label2.AutoSize = True
         Me.Label2.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label2.Location = New System.Drawing.Point(1078, 332)
+        Me.Label2.Location = New System.Drawing.Point(1106, 351)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(174, 16)
         Me.Label2.TabIndex = 30
         Me.Label2.Text = "Transforma a TXT SIFIC"
         '
-        'Reporte_Operaciones
+        'Label9
         '
-        Me.Reporte_Operaciones.Cursor = System.Windows.Forms.Cursors.Default
-        Me.Reporte_Operaciones.Image = CType(resources.GetObject("Reporte_Operaciones.Image"), System.Drawing.Image)
-        Me.Reporte_Operaciones.Location = New System.Drawing.Point(780, 132)
-        Me.Reporte_Operaciones.Name = "Reporte_Operaciones"
-        Me.Reporte_Operaciones.Size = New System.Drawing.Size(76, 74)
-        Me.Reporte_Operaciones.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
-        Me.Reporte_Operaciones.TabIndex = 32
-        Me.Reporte_Operaciones.TabStop = False
-        Me.ToolTip1.SetToolTip(Me.Reporte_Operaciones, "Genera Reporte de Operaciones")
+        Me.Label9.AutoSize = True
+        Me.Label9.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.75!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label9.Location = New System.Drawing.Point(459, 316)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(104, 32)
+        Me.Label9.TabIndex = 35
+        Me.Label9.Text = "Integra Matriz" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Costo Ingreso"
+        '
+        'PictureBox4
+        '
+        Me.PictureBox4.Cursor = System.Windows.Forms.Cursors.Default
+        Me.PictureBox4.Image = CType(resources.GetObject("PictureBox4.Image"), System.Drawing.Image)
+        Me.PictureBox4.Location = New System.Drawing.Point(550, 248)
+        Me.PictureBox4.Name = "PictureBox4"
+        Me.PictureBox4.Size = New System.Drawing.Size(61, 42)
+        Me.PictureBox4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.PictureBox4.TabIndex = 36
+        Me.PictureBox4.TabStop = False
+        '
+        'PictureBox5
+        '
+        Me.PictureBox5.Cursor = System.Windows.Forms.Cursors.Default
+        Me.PictureBox5.Image = CType(resources.GetObject("PictureBox5.Image"), System.Drawing.Image)
+        Me.PictureBox5.Location = New System.Drawing.Point(725, 248)
+        Me.PictureBox5.Name = "PictureBox5"
+        Me.PictureBox5.Size = New System.Drawing.Size(61, 42)
+        Me.PictureBox5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.PictureBox5.TabIndex = 37
+        Me.PictureBox5.TabStop = False
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label10.Location = New System.Drawing.Point(587, 316)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(168, 45)
+        Me.Label10.TabIndex = 38
+        Me.Label10.Text = "Integracion Operaciones " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Costo Ingreso" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Reclasificaciones" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
         '
         'Mapeo
         '
@@ -428,6 +506,12 @@ Partial Class Mapeo
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1282, 590)
         Me.ControlBox = False
+        Me.Controls.Add(Me.Label10)
+        Me.Controls.Add(Me.PictureBox5)
+        Me.Controls.Add(Me.PictureBox4)
+        Me.Controls.Add(Me.Label9)
+        Me.Controls.Add(Me.procesa_CostoIngreso)
+        Me.Controls.Add(Me.MatrizCostoIngreso_up)
         Me.Controls.Add(Me.Reporte_Operaciones)
         Me.Controls.Add(Me.Previsualiza_P1)
         Me.Controls.Add(Me.Label2)
@@ -482,6 +566,10 @@ Partial Class Mapeo
         CType(Me.Procesa_Polizas, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.Previsualiza_P1, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.Reporte_Operaciones, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.MatrizCostoIngreso_up, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.procesa_CostoIngreso, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.PictureBox4, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -519,4 +607,10 @@ Partial Class Mapeo
     Friend WithEvents Label2 As Label
     Friend WithEvents Previsualiza_P1 As PictureBox
     Friend WithEvents Reporte_Operaciones As PictureBox
+    Friend WithEvents MatrizCostoIngreso_up As PictureBox
+    Friend WithEvents procesa_CostoIngreso As PictureBox
+    Friend WithEvents Label9 As Label
+    Friend WithEvents PictureBox4 As PictureBox
+    Friend WithEvents PictureBox5 As PictureBox
+    Friend WithEvents Label10 As Label
 End Class

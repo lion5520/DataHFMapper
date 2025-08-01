@@ -27,6 +27,7 @@ Public Class Mapeo
     Private originalImage_MatrizOperICP As Image
     Private originalImage_Previsualisa_P1 As Image
     Private originalImage_ProcesaPolizas As Image
+    Private originalImage_ProcesaMatrizCostoIngreso_UP As Image
 
     Private Sub guardaImagenesOrignals()
         originalImage_SAP_IN = SAP_IN.Image
@@ -46,6 +47,7 @@ Public Class Mapeo
         originalImage_MatrizOperICP = MatrizOperICP_up.Image
         originalImage_Previsualisa_P1 = Previsualiza_P1.Image
         originalImage_ProcesaPolizas = Procesa_Polizas.Image
+        originalImage_ProcesaMatrizCostoIngreso_UP = MatrizCostoIngreso_up.Image
     End Sub
 
     Private Sub todoGris()
@@ -66,6 +68,7 @@ Public Class Mapeo
         MatrizOperICP_up.Image = ToGrayscale(originalImage_MatrizOperICP)
         Previsualiza_P1.Image = ToGrayscale(originalImage_Previsualisa_P1)
         Procesa_Polizas.Image = ToGrayscale(originalImage_ProcesaPolizas)
+        MatrizCostoIngreso_up.Image = ToGrayscale(MatrizCostoIngreso_up.Image)
     End Sub
 
     Private Sub desavilitaTodo()
@@ -610,6 +613,51 @@ ORDER BY sociedad;
         Me.Cursor = Cursors.Default
 
     End Sub
+
+    Private Async Sub MatrizCostoIngreso_up_Click(sender As Object, e As EventArgs) Handles MatrizCostoIngreso_up.Click
+
+        ' 1) Pedir al usuario la carpeta/archivo Excel a procesar
+        Dim rutaExcel As String = ""
+        Using dlg As New OpenFileDialog()
+            dlg.Title = "Seleccione el archivo Excel"
+            dlg.Filter = "Excel Workbook (*.xlsx)|*.xlsx"
+            dlg.Multiselect = False
+            If dlg.ShowDialog() <> DialogResult.OK Then
+                Return
+            End If
+            rutaExcel = dlg.FileName
+        End Using
+
+        ' 1) Arranca el parpadeo
+        MatrizCostoIngreso_up.Image = originalImage_ProcesaMatrizCostoIngreso_UP
+        IniciarParpadeoImagen(MatrizCostoIngreso_up)
+
+        Try
+            Me.Cursor = Cursors.WaitCursor
+            ' 2) Ejecuta tu operación en segundo plano
+            Await Task.Run(Sub()
+                               ' 3) Instanciar y lanzar la importación
+                               Dim importer = New UPD_matriz_costo_ingreso(rutaSQLite_A, rutaExcel)
+                               importer.Importar()
+                           End Sub)
+
+        Catch ex As Exception
+            MessageBox.Show("Error al iniciar la importación:" & vbCrLf & ex.Message,
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            ' 3) Detiene el parpadeo (restaura la imagen original)
+            DetenerParpadeo()
+            Me.Cursor = Cursors.Default
+        End Try
+
+        'Si todo bien pinta en color 
+        MatrizCostoIngreso_up.Image = originalImage_ProcesaMatrizCostoIngreso_UP
+
+        procesa_CostoIngreso.Enabled = True
+        procesa_CostoIngreso.Cursor = Cursors.Hand
+
+    End Sub
+
 
 
 

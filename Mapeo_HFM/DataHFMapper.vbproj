@@ -138,6 +138,7 @@
     </Compile>
     <Compile Include="BussinesLoigic\LayOutTransformerICB.vb" />
     <Compile Include="BussinesLoigic\ReporteICLoader.vb" />
+    <Compile Include="BussinesLoigic\UPD_matriz_costo_ingreso.vb" />
     <Compile Include="CompletaDatosHFM.Designer.vb">
       <DependentUpon>CompletaDatosHFM.vb</DependentUpon>
     </Compile>
