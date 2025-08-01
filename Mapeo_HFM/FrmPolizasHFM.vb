@@ -241,6 +241,7 @@ Public Class FrmPolizasHFM
     End Sub
 
     Private Sub CargarArchivo_Click(sender As Object, e As EventArgs)
+        Cursor.Current = Cursors.WaitCursor
         Dim result = MessageBox.Show("Esta acción eliminará todos los registros de las Pólizas HFM. ¿Desea continuar?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
         If result = DialogResult.No Then
             Cursor.Current = Cursors.Default
