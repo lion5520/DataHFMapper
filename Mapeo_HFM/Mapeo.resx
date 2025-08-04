@@ -1585,7 +1585,7 @@
   <data name="MatrizOperICP_up.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAjgAAAI4CAYAAABndZP2AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAy
-        wAAAMsABKGRa2wAAbV5JREFUeF7tnQd0FNfdt53ESWwjbAdjBE6+N+V1YoNrbAzClcQFbMeOC/abHiex
+        vwAAMr8BereA9gAAbV5JREFUeF7tnQd0FNfdt53ESWwjbAdjBE6+N+V1YoNrbAzClcQFbMeOC/abHiex
         aSqoIHoRBtwwptgGN+y4xnEBdYQQQvTeEb1oi7TqvUu7/+/cWS2gOytpR5qZOzP7e855ThKQdmdXys7D
         nTv3XnQRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJgZ
         IvqIiHKhVnq8epgtuR53Q25TTUFuTcGO3Kq8rNyyo9/kFu1eluvaND83P3tarn1tXK599YRce7pCV8fk
@@ -2419,7 +2419,7 @@
   <data name="txt_sific.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
-        zgAAC84BmqwouwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAC81SURBVHhe7d17
+        zQAAC80BNxUJ1gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAC81SURBVHhe7d17
         vG1lWejx0DJvZBdT69SL2UFDRS0sOSjh/a6pecrKbqSln8/xfMxL5q3OgwKCgAgoF4G8RJFa4S0TU1LU
         qI6PgoIgqCCCIioCotw283wGze3ZPM879l7vGO8z3jHn+v3x/eeBPceaY845xm+Nsda7fmCxWPwAUCKJ
         3iuJ7pdE35dEL0miCwDosSWJfi2JfjKJvieJHpNEX5FE906it7bHF0zHDYA+SfQ2SfQvk+h1mQ85AJT6
@@ -4116,7 +4116,7 @@
   <data name="Reporte_Operaciones.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAHAAAABvCAYAAAA0YEQFAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
-        EwAACxMBAJqcGAAAFkNJREFUeF7tnXtwXNddx7dAC2kHplMGhtcwMDAM0D9goG3qNLFVQtqU0HaANp1M
+        EgAACxIB0t1+/AAAFkNJREFUeF7tnXtwXNddx7dAC2kHplMGhtcwMDAM0D9goG3qNLFVQtqU0HaANp1M
         gVCG0naGoTA0oU2TJs2jNCWJa1uWtLYlS/JDjhXb8kN+24ot+SlZkvWyLFvWy7KelmS9pV35x3zP6lyd
         Pfece8+9e/chkW/mN3JW+9Dez/5+5/x+55zfhug9LWuF5BtWgu7fv08LzBYoshCluWiEZqLzNB2Zs9lM
         NGbzC1FmeAwey//LdK0IgPMLEZqcn6GR2XG6OzvOfsJG5yYsG5ubZHZvbspm4/Mxm5iftmwyMmPZVGSW
@@ -4217,7 +4217,7 @@
   <data name="MatrizCostoIngreso_up.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAjgAAAI4CAYAAABndZP2AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAy
-        wAAAMsABKGRa2wAAbV5JREFUeF7tnQd0FNfdt53ESWwjbAdjBE6+N+V1YoNrbAzClcQFbMeOC/abHiex
+        vwAAMr8BereA9gAAbV5JREFUeF7tnQd0FNfdt53ESWwjbAdjBE6+N+V1YoNrbAzClcQFbMeOC/abHiex
         aSqoIHoRBtwwptgGN+y4xnEBdYQQQvTeEb1oi7TqvUu7/+/cWS2gOytpR5qZOzP7e855ThKQdmdXys7D
         nTv3XnQRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJgZ
         IvqIiHKhVnq8epgtuR53Q25TTUFuTcGO3Kq8rNyyo9/kFu1eluvaND83P3tarn1tXK599YRce7pCV8fk
