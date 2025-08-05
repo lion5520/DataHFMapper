@@ -1,7 +1,5 @@
 ﻿Imports Workbook = ClosedXML.Excel.XLWorkbook
 Imports System.Data
-Imports System.IO
-Imports ClosedXML.Excel
 Imports OfficeOpenXml
 
 Public Class FrmPolizasHFM
@@ -108,9 +106,9 @@ Public Class FrmPolizasHFM
         If Not dt.Columns.Contains("Semaforo") Then
             dt.Columns.Add("Semaforo", GetType(String))
         End If
-        'For Each row As DataRow In dt.Rows
-        ' row("Semaforo") = CalcularSemaforo(row)  mcl revisar si se habilita
-        'Next
+        For Each row As DataRow In dt.Rows
+            ' row("Semaforo") = CalcularSemaforo(row)  mcl revisar si se habilita
+        Next
         dgvPolizasHFM.DataSource = dt
         dgvPolizasHFM.Columns("Semaforo").DisplayIndex = 0
         dgvPolizasHFM.Columns("Semaforo").HeaderText = ""
@@ -241,6 +239,7 @@ Public Class FrmPolizasHFM
     End Sub
 
     Private Sub CargarArchivo_Click(sender As Object, e As EventArgs)
+        Cursor.Current = Cursors.WaitCursor
         Dim result = MessageBox.Show("Esta acción eliminará todos los registros de las Pólizas HFM. ¿Desea continuar?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
         If result = DialogResult.No Then
             Cursor.Current = Cursors.Default
@@ -252,7 +251,6 @@ Public Class FrmPolizasHFM
             Cursor.Current = Cursors.Default
             Exit Sub
         End If
-        Cursor.Current = Cursors.WaitCursor
         Try
             Using workbook As New XLWorkbook(ofd.FileName)
                 Dim ws = workbook.Worksheet("Polizas")
@@ -364,7 +362,6 @@ Public Class FrmPolizasHFM
         ' Poblar cmbEntity
         cmbEntity.Items.Clear()
         cmbEntity.Items.Add("")
-
         Dim entidades = dt.AsEnumerable().Select(Function(r) r.Field(Of String)("Entity").Trim()).Distinct().OrderBy(Function(x) x)
         For Each ent In entidades
             If Not String.IsNullOrWhiteSpace(ent) Then cmbEntity.Items.Add(ent)
@@ -375,7 +372,6 @@ Public Class FrmPolizasHFM
         ' Poblar cmbDescrip
         cmbDescrip.Items.Clear()
         cmbDescrip.Items.Add("")
-
         Dim cuentas = dt.AsEnumerable().Select(Function(r) r.Field(Of String)("Descripcion").Trim()).Distinct().OrderBy(Function(x) x)
         For Each d In cuentas
             If Not String.IsNullOrWhiteSpace(d) Then cmbDescrip.Items.Add(d)
@@ -409,7 +405,6 @@ Public Class FrmPolizasHFM
             Distinct().OrderBy(Function(x) x)
         cmbEntity.Items.Clear()
         cmbEntity.Items.Add("")
-
         For Each ent In entidades
             If Not String.IsNullOrWhiteSpace(ent) Then cmbEntity.Items.Add(ent)
         Next
@@ -423,7 +418,6 @@ Public Class FrmPolizasHFM
             Distinct().OrderBy(Function(x) x)
         cmbDescrip.Items.Clear()
         cmbDescrip.Items.Add("")
-
         For Each a In cuentas
             If Not String.IsNullOrWhiteSpace(a) Then cmbDescrip.Items.Add(a)
         Next
@@ -468,7 +462,6 @@ Public Class FrmPolizasHFM
     Private Sub btnReclasificar_Click(sender As Object, e As EventArgs) Handles btnReclasificar.Click
         Cursor.Current = Cursors.WaitCursor
         Try
-            ' 1.1 Obtener todos los registros de TInSap, cargados desde SAP (vista resumida)
             Dim dtTInSap = repo.GetTInSap()
             For Each regTInSap As DataRow In dtTInSap.Rows
                 Dim sociedad = regTInSap("sociedad").ToString().TrimStart("0"c)
@@ -479,7 +472,7 @@ Public Class FrmPolizasHFM
                 Dim saldo_acum = Convert.ToDecimal(regTInSap("saldo_acum"))
 
 
-                ' 1.1.2 Buscar el registro obtenido de t_in_sap en polizas_HFM
+                ' 1.1.2 Buscar en polizas_HFM
                 Dim poliza = repo.BuscarPolizaPorSociedadCuenta(sociedad, numero_cuenta)
                 If poliza Is Nothing Then Continue For
 
@@ -532,13 +525,11 @@ Public Class FrmPolizasHFM
 
                     If (ciclo = 0) Then
                         idSeleccionado = idActual
-                        sumaOrigen = If(debe <> 0, -debe, haber)
+                        sumaOrigen = If(debe <> 0, debe, haber)
                         sumaObjetivo = Math.Abs(sumaOrigen)
-                        If sumaObjetivo = 0 Then Continue For
                     End If
                     ciclo += 1
 
-                    ' Si el idActual es menor o igual al idSeleccionado, se salta este registro
                     If idActual <= idSeleccionado Then Continue For
 
                     ' mcl revisar
@@ -583,7 +574,7 @@ Public Class FrmPolizasHFM
                         Dim cuentaMayorHFM = r("Account").ToString()
                         Dim debe = Convert.ToDecimal(r("Debe"))
                         Dim haber = Convert.ToDecimal(r("Haber"))
-                        Dim saldoReclas As Decimal = If(debe <> 0, -debe, haber)
+                        Dim saldoReclas As Decimal = If(debe <> 0, debe, -haber)
                         Dim idPoliza = r("id").ToString()
                         repo.InsertarTInSap(sociedadHFM, cuentaHFM, cuentaMayorHFM, saldoReclas, periodo, ejercicio, "Reclasificado de IDPOL = " & idPoliza & ", Derivado de IDTINSAP = " & idTInSap)
                         repo.ActualizarSaldoPolizaHFM(idPoliza, idSeleccionado)
@@ -602,204 +593,4 @@ Public Class FrmPolizasHFM
             Cursor.Current = Cursors.Default
         End Try
     End Sub
-
-    Public Sub CrearArchivoSumariaValidacion(rutaCarpeta As String)
-        Dim archivoOriginal As String = Path.Combine(rutaCarpeta, "SumariaPlantilla.xlsx")
-        If Not File.Exists(archivoOriginal) Then
-            Throw New FileNotFoundException("No se encontró el archivo SumariaPlantilla.xlsx en la ruta especificada.", archivoOriginal)
-        End If
-        Dim carpetaReportes As String = "Reportes"
-        If Not Directory.Exists(carpetaReportes) Then
-            Directory.CreateDirectory(carpetaReportes)
-        End If
-
-        Dim fechaActual As DateTime = DateTime.Now
-        Dim nombreCopia As String = String.Format("Sumaria_{0:yyyyMMddHHmmss}.xlsx", fechaActual)
-        archivoSumaria = Path.Combine(rutaCarpeta & "\" & carpetaReportes, nombreCopia)
-
-        File.Copy(archivoOriginal, archivoSumaria, True)
-    End Sub
-
-    Dim archivoSumaria As String
-    Private Sub BtnSumaria_Click(sender As Object, e As EventArgs) Handles BtnSumaria.Click
-        Try
-            Dim rutaActual As String = Environment.CurrentDirectory
-            CrearArchivoSumariaValidacion(rutaActual)
-            GenerarReporteSumariaValidacion()
-        Catch ex As FileNotFoundException
-            MessageBox.Show("No se encontró el archivo: " & ex.FileName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        Catch ex As Exception
-            MessageBox.Show("Error al crear el archivo: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
-    End Sub
-
-    Private Sub GenerarReporteSumariaValidacion()
-        Try
-            If String.IsNullOrWhiteSpace(archivoSumaria) OrElse Not File.Exists(archivoSumaria) Then
-                MessageBox.Show("No se encontró el archivo de sumaria.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                Exit Sub
-            End If
-
-            Dim dt As DataTable = repo.GetSumariaValidacionData()
-            If dt.Rows.Count = 0 Then
-                MessageBox.Show("No hay datos para el reporte.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                Exit Sub
-            End If
-
-            Using wb As New ClosedXML.Excel.XLWorkbook(archivoSumaria)
-                Dim ws = wb.Worksheet(1)
-                Dim rowExcel As Integer = 10
-
-                ' Acumuladores
-                Dim acumCias As Decimal = 0, acumReclas As Decimal = 0, acumElim As Decimal = 0, acumFinal As Decimal = 0
-                Dim acumCuentaCias As Decimal = 0, acumCuentaReclas As Decimal = 0, acumCuentaElim As Decimal = 0, acumCuentaFinal As Decimal = 0
-                Dim acumAgrupCias As Decimal = 0, acumAgrupReclas As Decimal = 0, acumAgrupElim As Decimal = 0, acumAgrupFinal As Decimal = 0
-
-                Dim lastCuentaOracle As String = Nothing
-                Dim lastAgrupador As String = Nothing
-
-                For i = 0 To dt.Rows.Count - 1
-                    Dim r = dt.Rows(i)
-                    Dim agrupador = If(IsDBNull(r("agrupador_detalle")), "", r("agrupador_detalle").ToString())
-                    Dim cuentaOracle = If(IsDBNull(r("cuenta_oracle")), "", r("cuenta_oracle").ToString())
-                    Dim descCuentaOracle = If(IsDBNull(r("descripcion_cuenta_oracle")), "", r("descripcion_cuenta_oracle").ToString())
-                    Dim numeroCuenta = If(IsDBNull(r("numero_cuenta")), "", r("numero_cuenta").ToString())
-                    Dim textoExplicativo = If(IsDBNull(r("texto_explicativo")), "", r("texto_explicativo").ToString())
-                    Dim sumaCias = If(IsDBNull(r("suma_cias")), 0D, Convert.ToDecimal(r("suma_cias")))
-                    Dim reclasificacion = If(IsDBNull(r("reclasificacion")), 0D, Convert.ToDecimal(r("reclasificacion")))
-                    Dim eliminacion = If(IsDBNull(r("eliminacion")), 0D, Convert.ToDecimal(r("eliminacion")))
-                    Dim saldoFinal = If(IsDBNull(r("saldo_final")), 0D, Convert.ToDecimal(r("saldo_final")))
-
-                    ' Corte de cuenta_oracle
-                    If lastCuentaOracle IsNot Nothing AndAlso cuentaOracle <> lastCuentaOracle Then
-                        ' Línea de corte de cuenta_oracle en negritas
-                        ws.Cell(rowExcel, 1).Value = lastCuentaOracle & " " & dt.Rows(i - 1)("descripcion_cuenta_oracle").ToString()
-                        ws.Range(ws.Cell(rowExcel, 1), ws.Cell(rowExcel, 14)).Style.Font.Bold = True
-                        ws.Cell(rowExcel, 11).Value = acumCuentaCias
-                        ws.Cell(rowExcel, 12).Value = acumCuentaReclas
-                        ws.Cell(rowExcel, 13).Value = acumCuentaElim
-                        ws.Cell(rowExcel, 14).Value = acumCuentaFinal
-                        ws.Cell(rowExcel, 11).Style.NumberFormat.Format = "#,##0.00"
-                        ws.Cell(rowExcel, 12).Style.NumberFormat.Format = "#,##0.00"
-                        ws.Cell(rowExcel, 13).Style.NumberFormat.Format = "#,##0.00"
-                        ws.Cell(rowExcel, 14).Style.NumberFormat.Format = "#,##0.00"
-                        rowExcel += 1
-                        acumCuentaCias = 0 : acumCuentaReclas = 0 : acumCuentaElim = 0 : acumCuentaFinal = 0
-                        ws.Row(rowExcel).Clear()
-                        rowExcel += 1
-                    End If
-
-                    ' Corte de agrupador_detalle
-                    If lastAgrupador IsNot Nothing AndAlso agrupador <> lastAgrupador Then
-                        ws.Cell(rowExcel, 1).Value = lastAgrupador
-                        ws.Range(ws.Cell(rowExcel, 2), ws.Cell(rowExcel, 14)).Style.Border.TopBorder = XLBorderStyleValues.Thin
-                        ws.Range(ws.Cell(rowExcel, 1), ws.Cell(rowExcel, 14)).Style.Font.Bold = True
-                        ws.Cell(rowExcel, 11).Value = acumAgrupCias
-                        ws.Cell(rowExcel, 12).Value = acumAgrupReclas
-                        ws.Cell(rowExcel, 13).Value = acumAgrupElim
-                        ws.Cell(rowExcel, 14).Value = acumAgrupFinal
-                        ws.Cell(rowExcel, 11).Style.NumberFormat.Format = "#,##0.00"
-                        ws.Cell(rowExcel, 12).Style.NumberFormat.Format = "#,##0.00"
-                        ws.Cell(rowExcel, 13).Style.NumberFormat.Format = "#,##0.00"
-                        ws.Cell(rowExcel, 14).Style.NumberFormat.Format = "#,##0.00"
-                        rowExcel += 1
-                        acumAgrupCias = 0 : acumAgrupReclas = 0 : acumAgrupElim = 0 : acumAgrupFinal = 0
-                        ws.Row(rowExcel).Clear()
-                        ws.Row(rowExcel + 1).Clear()
-                        rowExcel += 2
-                    End If
-
-                    ' Registro normal
-                    ws.Cell(rowExcel, 1).Value = numeroCuenta & " " & textoExplicativo
-                    ws.Cell(rowExcel, 11).Value = sumaCias
-                    ws.Cell(rowExcel, 12).Value = reclasificacion
-                    ws.Cell(rowExcel, 13).Value = eliminacion
-                    ws.Cell(rowExcel, 14).Value = saldoFinal
-                    ws.Cell(rowExcel, 11).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 12).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 13).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 14).Style.NumberFormat.Format = "#,##0.00"
-
-                    ' Acumuladores
-                    acumCias += sumaCias
-                    acumReclas += reclasificacion
-                    acumElim += eliminacion
-                    acumFinal += saldoFinal
-
-                    acumCuentaCias += sumaCias
-                    acumCuentaReclas += reclasificacion
-                    acumCuentaElim += eliminacion
-                    acumCuentaFinal += saldoFinal
-
-                    acumAgrupCias += sumaCias
-                    acumAgrupReclas += reclasificacion
-                    acumAgrupElim += eliminacion
-                    acumAgrupFinal += saldoFinal
-
-                    lastCuentaOracle = cuentaOracle
-                    lastAgrupador = agrupador
-                    rowExcel += 1
-                Next
-
-                ' Corte final de cuenta_oracle
-                If dt.Rows.Count > 0 Then
-                    ws.Cell(rowExcel, 1).Value = lastCuentaOracle & " " & dt.Rows(dt.Rows.Count - 1)("descripcion_cuenta_oracle").ToString()
-                    ws.Range(ws.Cell(rowExcel, 1), ws.Cell(rowExcel, 14)).Style.Font.Bold = True
-                    ws.Cell(rowExcel, 11).Value = acumCuentaCias
-                    ws.Cell(rowExcel, 12).Value = acumCuentaReclas
-                    ws.Cell(rowExcel, 13).Value = acumCuentaElim
-                    ws.Cell(rowExcel, 14).Value = acumCuentaFinal
-                    ws.Cell(rowExcel, 11).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 12).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 13).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 14).Style.NumberFormat.Format = "#,##0.00"
-                    rowExcel += 1
-                    ws.Row(rowExcel).Clear()
-                    rowExcel += 1
-
-                    ' Corte final de agrupador_detalle
-                    ws.Cell(rowExcel, 1).Value = lastAgrupador
-                    ws.Range(ws.Cell(rowExcel, 2), ws.Cell(rowExcel, 14)).Style.Border.TopBorder = XLBorderStyleValues.Thin
-                    ws.Range(ws.Cell(rowExcel, 1), ws.Cell(rowExcel, 14)).Style.Font.Bold = True
-                    ws.Cell(rowExcel, 11).Value = acumAgrupCias
-                    ws.Cell(rowExcel, 12).Value = acumAgrupReclas
-                    ws.Cell(rowExcel, 13).Value = acumAgrupElim
-                    ws.Cell(rowExcel, 14).Value = acumAgrupFinal
-                    ws.Cell(rowExcel, 11).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 12).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 13).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 14).Style.NumberFormat.Format = "#,##0.00"
-                    rowExcel += 1
-                    ws.Row(rowExcel).Clear()
-                    ws.Row(rowExcel + 1).Clear()
-                    rowExcel += 2
-
-                    ' Corte total
-                    ws.Cell(rowExcel, 1).Value = "Total"
-                    ws.Range(ws.Cell(rowExcel, 2), ws.Cell(rowExcel, 14)).Style.Border.TopBorder = XLBorderStyleValues.Double
-                    ws.Range(ws.Cell(rowExcel, 2), ws.Cell(rowExcel, 14)).Style.Border.BottomBorder = XLBorderStyleValues.Double
-                    ws.Range(ws.Cell(rowExcel, 1), ws.Cell(rowExcel, 14)).Style.Font.Bold = True
-                    ws.Cell(rowExcel, 11).Value = acumCias
-                    ws.Cell(rowExcel, 12).Value = acumReclas
-                    ws.Cell(rowExcel, 13).Value = acumElim
-                    ws.Cell(rowExcel, 14).Value = acumFinal
-                    ws.Cell(rowExcel, 11).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 12).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 13).Style.NumberFormat.Format = "#,##0.00"
-                    ws.Cell(rowExcel, 14).Style.NumberFormat.Format = "#,##0.00"
-                    rowExcel += 1
-                    ws.Row(rowExcel).Clear()
-                    ws.Row(rowExcel + 1).Clear()
-                    rowExcel += 2
-                End If
-
-                wb.Save()
-            End Using
-
-            MessageBox.Show("Reporte Sumaria de Validación generado.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information)
-        Catch ex As Exception
-            MessageBox.Show("Error al generar el reporte: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
-    End Sub
-
 End Class

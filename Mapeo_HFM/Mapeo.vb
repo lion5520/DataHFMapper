@@ -8,7 +8,7 @@ Imports OfficeOpenXml
 
 Public Class Mapeo
 
-    Private rutaSQLite_A As String = "C:\Users\mario\Outliers\IZZI\Pruebas\mapeo_sap_sific.sqlite"
+    Private rutaSQLite_A As String = "C:\Users\Lion\Desktop\IZZI_DAT\mapeo_sap_sific.sqlite"
     Private rutaSQLite As String = "Y:\top_variacion.sqlite"
     Private originalImage_SAP_IN As Image
     Private originalImage_procesa_1 As Image
@@ -227,14 +227,6 @@ Public Class Mapeo
             ' 2) Ejecuta tu operación en segundo plano
             Await Task.Run(Sub()
                                Procesa_Entrada_SAP.Ejecutar(rutaExcel, rutaSQLite_A)
-                               ' --- Integración de la rutina para clonar t_in_sap_original --- MCL 01-AGO-2025
-                               Try
-                                   Dim repo As New PolizasRepository(rutaSQLite_A)
-                                   repo.ClonarTablaTInSapOriginal()
-                               Catch ex As Exception
-                                   MessageBox.Show("Error al clonar la tabla t_in_sap_original: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                               End Try
-                               ' --- Fin integración ---
                                MessageBox.Show("Proceso finalizado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
                                'Inicia rutina si hay cuenta oracle vacias
@@ -505,8 +497,7 @@ ORDER BY sociedad;
 
     Private Sub PictureBox2_Click(sender As Object, e As EventArgs) Handles Procesa_Polizas.Click
 
-        ' Dim frm As New Captura_Polizas(rutaSQLite_A, Me)
-        Dim frm As New FrmPolizasHFM()
+        Dim frm As New Captura_Polizas(rutaSQLite_A, Me)
         frm.Show()
 
     End Sub
@@ -667,8 +658,7 @@ ORDER BY sociedad;
 
     End Sub
 
-    Private Sub previsualiza_3_Click(sender As Object, e As EventArgs) Handles previsualiza_3.Click
-        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_3")
-        exporter.Export()
-    End Sub
+
+
+
 End Class

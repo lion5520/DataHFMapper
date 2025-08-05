@@ -55,7 +55,6 @@ Partial Class FrmPolizasHFM
         Me.btnQuitarFiltro = New System.Windows.Forms.Button()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
         Me.btnReclasificar = New System.Windows.Forms.Button()
-        Me.BtnSumaria = New System.Windows.Forms.Button()
         Me.groupApp.SuspendLayout()
         CType(Me.dgvPolizasHFM, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dgvCuentaOrigen, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -393,28 +392,18 @@ Partial Class FrmPolizasHFM
         '
         'btnReclasificar
         '
-        Me.btnReclasificar.Location = New System.Drawing.Point(1123, 210)
+        Me.btnReclasificar.Location = New System.Drawing.Point(1123, 205)
         Me.btnReclasificar.Name = "btnReclasificar"
-        Me.btnReclasificar.Size = New System.Drawing.Size(101, 65)
+        Me.btnReclasificar.Size = New System.Drawing.Size(101, 70)
         Me.btnReclasificar.TabIndex = 16
         Me.btnReclasificar.Text = "Reclasificar"
         Me.btnReclasificar.UseVisualStyleBackColor = True
-        '
-        'BtnSumaria
-        '
-        Me.BtnSumaria.Location = New System.Drawing.Point(1123, 131)
-        Me.BtnSumaria.Name = "BtnSumaria"
-        Me.BtnSumaria.Size = New System.Drawing.Size(101, 73)
-        Me.BtnSumaria.TabIndex = 17
-        Me.BtnSumaria.Text = "Reporte Sumaria"
-        Me.BtnSumaria.UseVisualStyleBackColor = True
         '
         'FrmPolizasHFM
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1299, 903)
-        Me.Controls.Add(Me.BtnSumaria)
         Me.Controls.Add(Me.btnReclasificar)
         Me.Controls.Add(Me.GroupBox1)
         Me.Controls.Add(Me.Label11)
@@ -471,5 +460,4 @@ Partial Class FrmPolizasHFM
     Friend WithEvents btnQuitarFiltro As Button
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents btnReclasificar As Button
-    Friend WithEvents BtnSumaria As Button
 End Class
