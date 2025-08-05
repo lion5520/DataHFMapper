@@ -62,6 +62,7 @@ Partial Class Mapeo
         Me.PictureBox4 = New System.Windows.Forms.PictureBox()
         Me.PictureBox5 = New System.Windows.Forms.PictureBox()
         Me.Label10 = New System.Windows.Forms.Label()
+        Me.Previsualiza_P2 = New System.Windows.Forms.PictureBox()
         CType(Me.SAP_IN, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.flecha_1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.previsualiza__MatrizOperICP, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -85,6 +86,7 @@ Partial Class Mapeo
         CType(Me.procesa_CostoIngreso, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox4, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.Previsualiza_P2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'btnCargaFile
@@ -500,12 +502,25 @@ Partial Class Mapeo
         Me.Label10.TabIndex = 38
         Me.Label10.Text = "Integracion Operaciones " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Costo Ingreso" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Reclasificaciones" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
         '
+        'Previsualiza_P2
+        '
+        Me.Previsualiza_P2.Cursor = System.Windows.Forms.Cursors.Default
+        Me.Previsualiza_P2.Image = CType(resources.GetObject("Previsualiza_P2.Image"), System.Drawing.Image)
+        Me.Previsualiza_P2.Location = New System.Drawing.Point(682, 172)
+        Me.Previsualiza_P2.Name = "Previsualiza_P2"
+        Me.Previsualiza_P2.Size = New System.Drawing.Size(43, 43)
+        Me.Previsualiza_P2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.Previsualiza_P2.TabIndex = 39
+        Me.Previsualiza_P2.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.Previsualiza_P2, "Punto de Previsualización")
+        '
         'Mapeo
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1282, 590)
         Me.ControlBox = False
+        Me.Controls.Add(Me.Previsualiza_P2)
         Me.Controls.Add(Me.Label10)
         Me.Controls.Add(Me.PictureBox5)
         Me.Controls.Add(Me.PictureBox4)
@@ -570,6 +585,7 @@ Partial Class Mapeo
         CType(Me.procesa_CostoIngreso, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox4, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.Previsualiza_P2, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -613,4 +629,5 @@ Partial Class Mapeo
     Friend WithEvents PictureBox4 As PictureBox
     Friend WithEvents PictureBox5 As PictureBox
     Friend WithEvents Label10 As Label
+    Friend WithEvents Previsualiza_P2 As PictureBox
 End Class

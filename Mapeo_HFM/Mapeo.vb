@@ -28,6 +28,7 @@ Public Class Mapeo
     Private originalImage_Previsualisa_P1 As Image
     Private originalImage_ProcesaPolizas As Image
     Private originalImage_ProcesaMatrizCostoIngreso_UP As Image
+    Private originalImage_ProcesaCostoIngreso As Image
 
     Private Sub guardaImagenesOrignals()
         originalImage_SAP_IN = SAP_IN.Image
@@ -48,6 +49,7 @@ Public Class Mapeo
         originalImage_Previsualisa_P1 = Previsualiza_P1.Image
         originalImage_ProcesaPolizas = Procesa_Polizas.Image
         originalImage_ProcesaMatrizCostoIngreso_UP = MatrizCostoIngreso_up.Image
+        originalImage_ProcesaCostoIngreso = procesa_CostoIngreso.Image
     End Sub
 
     Private Sub todoGris()
@@ -69,6 +71,7 @@ Public Class Mapeo
         Previsualiza_P1.Image = ToGrayscale(originalImage_Previsualisa_P1)
         Procesa_Polizas.Image = ToGrayscale(originalImage_ProcesaPolizas)
         MatrizCostoIngreso_up.Image = ToGrayscale(MatrizCostoIngreso_up.Image)
+        procesa_CostoIngreso.Image = ToGrayscale(procesa_CostoIngreso.Image)
     End Sub
 
     Private Sub desavilitaTodo()
@@ -87,6 +90,7 @@ Public Class Mapeo
         txt_sific.Enabled = False
         Previsualiza_P1.Enabled = False
         Procesa_Polizas.Enabled = False
+        procesa_CostoIngreso.Enabled = False
     End Sub
     Private Sub Mapeo_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         'Guarda la imagen original para poder restaurarla
@@ -94,6 +98,49 @@ Public Class Mapeo
         'Convierte todo en gris nada ejecutado
         todoGris()
 
+        'Valido si hay datos para habilitar algunas funciones
+        ValidarCostoIngresoAcumulado()
+
+    End Sub
+
+
+    Public Sub ValidarCostoIngresoAcumulado()
+        ' Construye la cadena de conexión
+        Dim connString As String = String.Format("Data Source={0};Version=3;", rutaSQLite_A)
+
+        ' Intentamos abrir la conexión y consultar el conteo de filas
+        Try
+            Using conn As New SQLiteConnection(connString)
+                conn.Open()
+
+                ' Ejecuta un COUNT(*) sobre la tabla
+                Using cmd As New SQLiteCommand("SELECT COUNT(*) FROM costo_ingreso_acum;", conn)
+                    Dim count As Long = CLng(cmd.ExecuteScalar())
+
+                    If count > 0 Then
+                        ' --- La tabla tiene datos ---
+                        Console.WriteLine("La tabla 'costo_ingreso_acumulado' tiene datos: " & count.ToString() & " filas.")
+                        procesa_CostoIngreso.Enabled = True
+                        procesa_CostoIngreso.Cursor = Cursors.Hand
+
+                        MatrizCostoIngreso_up.Image = originalImage_ProcesaMatrizCostoIngreso_UP
+
+                    Else
+                        ' --- La tabla está vacía ---
+                        Console.WriteLine("La tabla 'costo_ingreso_acumulado' está vacía.")
+
+                    End If
+                End Using
+            End Using
+
+        Catch ex As SQLiteException
+            ' Manejo de errores de SQLite (tabla no existe, ruta inválida, etc.)
+            Console.WriteLine("Error al acceder a la base de datos: " & ex.Message)
+            ' TODO: quizá quieras lanzar la excepción o tomar otra acción
+        Catch ex As Exception
+            ' Manejo de errores genéricos
+            Console.WriteLine("Error inesperado: " & ex.Message)
+        End Try
     End Sub
 
     Private Sub btnCargaFile_Click(sender As Object, e As EventArgs) Handles btnCargaFile.Click
@@ -658,7 +705,42 @@ ORDER BY sociedad;
 
     End Sub
 
+    Private Async Sub procesa_CostoIngreso_Click(sender As Object, e As EventArgs) Handles procesa_CostoIngreso.Click
 
+        ' 1) Arranca el parpadeo
+        procesa_CostoIngreso.Image = originalImage_ProcesaMatrizCostoIngreso_UP
+        IniciarParpadeoImagen(procesa_CostoIngreso)
 
+        Try
+            Me.Cursor = Cursors.WaitCursor
+            ' 2) Ejecuta tu operación en segundo plano
+            Await Task.Run(Sub()
+                               ' 3) Instanciar y lanzar la importación
+                               Dim integra_CI = New integra_costo_ingreso(rutaSQLite_A)
+                               integra_CI.Procesar()
+                           End Sub)
 
+        Catch ex As Exception
+            MessageBox.Show("Error al iniciar la integracion de saldos:" & vbCrLf & ex.Message,
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Finally
+            ' 3) Detiene el parpadeo (restaura la imagen original)
+            DetenerParpadeo()
+            Me.Cursor = Cursors.Default
+        End Try
+
+        'Si todo bien pinta en color 
+        MatrizCostoIngreso_up.Image = originalImage_ProcesaMatrizCostoIngreso_UP
+
+        Procesa_Polizas.Enabled = True
+        Procesa_Polizas.Cursor = Cursors.Hand
+    End Sub
+
+    Private Sub Previsualiza_P2_Click(sender As Object, e As EventArgs) Handles Previsualiza_P2.Click
+        Me.Cursor = Cursors.WaitCursor
+        Dim exporter = New SqliteTableExporter(rutaSQLite_A, "t_in_sap", "Previsualiza_IntegracionMatrizCostoIngreso")
+        exporter.Export()
+        Me.Cursor = Cursors.Default
+
+    End Sub
 End Class

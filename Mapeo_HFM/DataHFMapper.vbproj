@@ -136,6 +136,7 @@
     <Compile Include="BussinesLoigic\Captura_Polizas.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="BussinesLoigic\integra_costo_ingreso.vb" />
     <Compile Include="BussinesLoigic\LayOutTransformerICB.vb" />
     <Compile Include="BussinesLoigic\ReporteICLoader.vb" />
     <Compile Include="BussinesLoigic\UPD_matriz_costo_ingreso.vb" />
