@@ -544,7 +544,8 @@ ORDER BY sociedad;
 
     Private Sub PictureBox2_Click(sender As Object, e As EventArgs) Handles Procesa_Polizas.Click
 
-        Dim frm As New Captura_Polizas(rutaSQLite_A, Me)
+        'Dim frm As New Captura_Polizas(rutaSQLite_A, Me)
+        Dim frm As New FrmPolizasHFM()
         frm.Show()
 
     End Sub
@@ -743,4 +744,6 @@ ORDER BY sociedad;
         Me.Cursor = Cursors.Default
 
     End Sub
+
+
 End Class

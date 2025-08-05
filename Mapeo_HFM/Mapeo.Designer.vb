@@ -56,13 +56,13 @@ Partial Class Mapeo
         Me.Reporte_Operaciones = New System.Windows.Forms.PictureBox()
         Me.MatrizCostoIngreso_up = New System.Windows.Forms.PictureBox()
         Me.procesa_CostoIngreso = New System.Windows.Forms.PictureBox()
+        Me.Previsualiza_P2 = New System.Windows.Forms.PictureBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.Label9 = New System.Windows.Forms.Label()
         Me.PictureBox4 = New System.Windows.Forms.PictureBox()
         Me.PictureBox5 = New System.Windows.Forms.PictureBox()
         Me.Label10 = New System.Windows.Forms.Label()
-        Me.Previsualiza_P2 = New System.Windows.Forms.PictureBox()
         CType(Me.SAP_IN, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.flecha_1, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.previsualiza__MatrizOperICP, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -84,9 +84,9 @@ Partial Class Mapeo
         CType(Me.Reporte_Operaciones, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.MatrizCostoIngreso_up, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.procesa_CostoIngreso, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.Previsualiza_P2, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox4, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).BeginInit()
-        CType(Me.Previsualiza_P2, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'btnCargaFile
@@ -224,7 +224,7 @@ Partial Class Mapeo
         'flecha_2
         '
         Me.flecha_2.Image = CType(resources.GetObject("flecha_2.Image"), System.Drawing.Image)
-        Me.flecha_2.Location = New System.Drawing.Point(929, 248)
+        Me.flecha_2.Location = New System.Drawing.Point(901, 248)
         Me.flecha_2.Name = "flecha_2"
         Me.flecha_2.Size = New System.Drawing.Size(61, 42)
         Me.flecha_2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -440,6 +440,18 @@ Partial Class Mapeo
         Me.ToolTip1.SetToolTip(Me.procesa_CostoIngreso, "Ejecuta las tareas:" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "         * Integracion de saldos Costo Ingreso" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "         * R" &
         "eclasificación ")
         '
+        'Previsualiza_P2
+        '
+        Me.Previsualiza_P2.Cursor = System.Windows.Forms.Cursors.Default
+        Me.Previsualiza_P2.Image = CType(resources.GetObject("Previsualiza_P2.Image"), System.Drawing.Image)
+        Me.Previsualiza_P2.Location = New System.Drawing.Point(682, 172)
+        Me.Previsualiza_P2.Name = "Previsualiza_P2"
+        Me.Previsualiza_P2.Size = New System.Drawing.Size(43, 43)
+        Me.Previsualiza_P2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.Previsualiza_P2.TabIndex = 39
+        Me.Previsualiza_P2.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.Previsualiza_P2, "Punto de Previsualización")
+        '
         'Label1
         '
         Me.Label1.AutoSize = True
@@ -501,18 +513,6 @@ Partial Class Mapeo
         Me.Label10.Size = New System.Drawing.Size(168, 45)
         Me.Label10.TabIndex = 38
         Me.Label10.Text = "Integracion Operaciones " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Costo Ingreso" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Reclasificaciones" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
-        '
-        'Previsualiza_P2
-        '
-        Me.Previsualiza_P2.Cursor = System.Windows.Forms.Cursors.Default
-        Me.Previsualiza_P2.Image = CType(resources.GetObject("Previsualiza_P2.Image"), System.Drawing.Image)
-        Me.Previsualiza_P2.Location = New System.Drawing.Point(682, 172)
-        Me.Previsualiza_P2.Name = "Previsualiza_P2"
-        Me.Previsualiza_P2.Size = New System.Drawing.Size(43, 43)
-        Me.Previsualiza_P2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
-        Me.Previsualiza_P2.TabIndex = 39
-        Me.Previsualiza_P2.TabStop = False
-        Me.ToolTip1.SetToolTip(Me.Previsualiza_P2, "Punto de Previsualización")
         '
         'Mapeo
         '
@@ -583,9 +583,9 @@ Partial Class Mapeo
         CType(Me.Reporte_Operaciones, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.MatrizCostoIngreso_up, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.procesa_CostoIngreso, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.Previsualiza_P2, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox4, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox5, System.ComponentModel.ISupportInitialize).EndInit()
-        CType(Me.Previsualiza_P2, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
