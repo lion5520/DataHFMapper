@@ -1,9 +1,9 @@
-﻿Imports System.Data
+﻿Imports Workbook = ClosedXML.Excel.XLWorkbook
+Imports System.Data
 Imports System.IO
 Imports ClosedXML.Excel
 Imports OfficeOpenXml
 
-Imports Workbook = ClosedXML.Excel.XLWorkbook
 Public Class FrmPolizasHFM
     Private Sub FrmPolizasHFM_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
@@ -254,7 +254,7 @@ Public Class FrmPolizasHFM
         End If
         Cursor.Current = Cursors.WaitCursor
         Try
-            Using workbook As New Workbook(ofd.FileName)
+            Using workbook As New XLWorkbook(ofd.FileName)
                 Dim ws = workbook.Worksheet("Polizas")
                 If ws Is Nothing Then Throw New Exception("No se encontró la hoja 'Polizas'.")
                 ' Validar encabezados en línea 13
@@ -545,12 +545,16 @@ Public Class FrmPolizasHFM
                     If (cuentaOrigen.Equals(numero_cuenta) And
                     sociedadOrigen.Equals(sociedad) And Math.Abs(sumaOrigen) = sumaObjetivo) Then Continue For
 
-                    suma += (debe - haber)
+                    ' MCL 05-08-2025
+                    ' suma += (debe - haber)
+                    suma += (haber - debe)
                     usados.Add(r)
 
                     If Math.Abs(debe) = sumaObjetivo Or Math.Abs(haber) = sumaObjetivo Then
                         usados.Clear()
                         usados.Add(r)
+                        ' MCL 05-08-2025
+                        suma = If(debe <> 0, -debe, haber)
                         encontrado = True
                         Exit For
                     End If
@@ -561,9 +565,14 @@ Public Class FrmPolizasHFM
                     End If
                 Next
 
+                ' MCL 05-08-2025
+                ' si sumaOrigen es igual a sumaObjetivo, cambiar el signo porque solo reclasifica la cuenta, no el importe
+                If sumaOrigen = suma Then sumaOrigen = (-1) * sumaOrigen
+
+
                 ' Se modifica 4-ago-2025 
-                ' Dim saldoActualizado As Decimal = If(saldo_acum < 0, saldo_acum + sumaObjetivo, saldo_acum - sumaObjetivo)
-                Dim saldoActualizado As Decimal = saldo_acum + sumaObjetivo
+                'Dim saldoActualizado As Decimal = If(saldo_acum < 0, saldo_acum + sumaObjetivo, saldo_acum - sumaObjetivo)
+                Dim saldoActualizado As Decimal = saldo_acum + sumaOrigen
                 If encontrado AndAlso usados.Count > 0 Then
                     For Each r In usados
                         Dim sociedadHFM = r("Entity").ToString()

@@ -28,10 +28,12 @@ Public Class integra_costo_ingreso
             Using tran = conn.BeginTransaction()
                 ' Paso 1: obtener lista de grupos
                 Dim grupos As New List(Of String)
-                Using cmdGr As New SQLiteCommand(
-                        "SELECT DISTINCT g.GRUPO 
-                        FROM costo_ingreso_acum ci JOIN GL_ICP_Grupos g 
-                            On LTRIM(ci.SOC_SAP,'0')=LTRIM(g.GL_ICP,'0') ORDER BY g.GRUPO;", conn, tran)
+                Dim sqlGr As String =
+                    "SELECT DISTINCT g.GRUPO " &
+                    "FROM costo_ingreso_acum ci " &
+                    "  JOIN GL_ICP_Grupos g ON LTRIM(ci.SOC_SAP,'0')=LTRIM(g.GL_ICP,'0') " &
+                    "ORDER BY g.GRUPO;"
+                Using cmdGr As New SQLiteCommand(sqlGr, conn, tran)
                     Using rdr = cmdGr.ExecuteReader()
                         While rdr.Read()
                             grupos.Add(rdr.GetString(0))
@@ -46,21 +48,23 @@ Public Class integra_costo_ingreso
                 End If
 
                 ' Paso 2: seleccionar grupo
-                Dim prompt = "Grupos disponibles:  " & String.Join(", ", grupos) & vbCrLf & "Ingrese el grupo a procesar:"
+                Dim prompt = "Grupos disponibles: " & String.Join(", ", grupos) & vbCrLf &
+                             "Ingrese el grupo a procesar:"
                 Dim grupoSel = InputBox(prompt, "Seleccione Grupo").Trim()
                 If String.IsNullOrWhiteSpace(grupoSel) OrElse Not grupos.Contains(grupoSel) Then
-                    MessageBox.Show("Grupo inválido o cancelado.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    MessageBox.Show("Grupo inválido o cancelado.", "Atención",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     Return
                 End If
 
                 ' Paso 3: obtener sociedades para el grupo
                 Dim socList As New List(Of String)
-                Using cmdSoc As New SQLiteCommand(
-                        "SELECT DISTINCT LTRIM(ci.SOC_SAP,'0') 
-                        FROM costo_ingreso_acum ci 
-                        JOIN GL_ICP_Grupos g 
-                            On LTRIM(ci.SOC_SAP,'0')=LTRIM(g.GL_ICP,'0') 
-                        WHERE g.GRUPO=@grp;", conn, tran)
+                Dim sqlSoc As String =
+                    "SELECT DISTINCT LTRIM(ci.SOC_SAP,'0') " &
+                    "FROM costo_ingreso_acum ci " &
+                    "  JOIN GL_ICP_Grupos g ON LTRIM(ci.SOC_SAP,'0')=LTRIM(g.GL_ICP,'0') " &
+                    "WHERE g.GRUPO=@grp;"
+                Using cmdSoc As New SQLiteCommand(sqlSoc, conn, tran)
                     cmdSoc.Parameters.AddWithValue("@grp", grupoSel)
                     Using rdr = cmdSoc.ExecuteReader()
                         While rdr.Read()
@@ -70,7 +74,8 @@ Public Class integra_costo_ingreso
                 End Using
 
                 If socList.Count = 0 Then
-                    MessageBox.Show("No hay sociedades asociadas al grupo.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    MessageBox.Show("No hay sociedades asociadas al grupo.", "Atención",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information)
                     Return
                 End If
 
@@ -82,141 +87,101 @@ Public Class integra_costo_ingreso
                     daCI.Fill(dtCI)
                 End Using
 
-                ' Obtener columnas de t_in_sap para clonación (excluir ID y rowid)
-                Dim cols As New List(Of String)
-                Using cmdCols As New SQLiteCommand("PRAGMA table_info(t_in_sap);", conn, tran)
-                    Using rdr = cmdCols.ExecuteReader()
-                        While rdr.Read()
-                            Dim name = rdr("name").ToString()
-                            If Not String.Equals(name, "id", StringComparison.OrdinalIgnoreCase) _
-               AndAlso Not String.Equals(name, "rowid", StringComparison.OrdinalIgnoreCase) Then
-                                cols.Add(name)
-                            End If
-                        End While
-                    End Using
-                End Using
-
-
-                ' Lista de IDs procesados para evitar reprocesar
-                Dim processedIds As New List(Of Long)
-
-                ' Paso 5: procesar cada fila (While para poder remover)
-                Dim index = 0
-                While index < dtCI.Rows.Count
-                    Dim rowCI = dtCI.Rows(index)
+                ' Paso 5: procesar cada fila leyendo y actualizando ICP None
+                While dtCI.Rows.Count > 0
+                    Dim rowCI = dtCI.Rows(0)
                     Dim soc = TrimLeadingZeros(Convert.ToString(rowCI("SOC_SAP")))
                     Dim cta = TrimLeadingZeros(Convert.ToString(rowCI("CUENTA_SAP")))
                     Dim icp = TrimLeadingZeros(Convert.ToString(rowCI("ICP_ORACLE")))
                     Dim monto = Math.Round(Convert.ToDouble(rowCI("MONTO_T_MXP")), 2, MidpointRounding.AwayFromZero)
 
-                    ' Buscar coincidencia exacta en t_in_sap
-                    Dim dtExist As New DataTable()
-                    Using cmdE As New SQLiteCommand(
-                        "SELECT ID, saldo_acum 
-                        FROM t_in_sap 
-                        WHERE LTRIM(sociedad,'0')=@soc AND numero_cuenta=@cta AND LTRIM(deudor_acreedor_2,'0')=@icp;", conn, tran)
-                        cmdE.Parameters.AddWithValue("@soc", soc)
-                        cmdE.Parameters.AddWithValue("@cta", cta)
-                        cmdE.Parameters.AddWithValue("@icp", icp)
-                        Using daE As New SQLiteDataAdapter(cmdE)
-                            daE.Fill(dtExist)
+
+                    ' 5.1) Leer o crear registro base “[ICP None]”
+                    Dim dtBase As New DataTable()
+                    Using cmdBase As New SQLiteCommand(
+                        "SELECT ID, saldo_acum FROM t_in_sap " &
+                        "WHERE LTRIM(sociedad,'0')=@soc " &
+                          "AND LTRIM(numero_cuenta,'0')=@cta " &
+                          "AND deudor_acreedor_2='[ICP None]';",
+                        conn, tran)
+                        cmdBase.Parameters.AddWithValue("@soc", soc)
+                        cmdBase.Parameters.AddWithValue("@cta", cta)
+                        Using daBase As New SQLiteDataAdapter(cmdBase)
+                            daBase.Fill(dtBase)
                         End Using
                     End Using
 
-                    Dim idExist As Long = 0, saldoExist As Double = 0
-                    If dtExist.Rows.Count > 0 Then
-                        idExist = dtExist.Rows(0).Field(Of Long)("ID")
-                        saldoExist = Convert.ToDouble(dtExist.Rows(0)("saldo_acum"))
-
-                        ' Si ya procesado, omitir
-                        If processedIds.Contains(idExist) Then
-                            index += 1 : Continue While
-                        End If
-
-                        ' Si monto igual, sólo marcar como procesado
-                        If Math.Abs(saldoExist - monto) < 0.005 Then
-                            processedIds.Add(idExist)
-                            index += 1 : Continue While
-                        End If
-
-                        Dim diff = monto - saldoExist
-                        ' Saldos difieren: actualizar y distribuir diferencia
-                        Using cmdUpd As New SQLiteCommand("UPDATE t_in_sap SET saldo_acum=@new WHERE ID=@rid;", conn, tran)
-                            cmdUpd.Parameters.AddWithValue("@new", monto)
-                            cmdUpd.Parameters.AddWithValue("@rid", idExist)
-                            cmdUpd.ExecuteNonQuery()
+                    'Si no hay registro IPC_NOONE no hay donde acumular diferencia i es el caso se crea
+                    If dtBase.Rows.Count = 0 Then
+                        Using cmdNewBase As New SQLiteCommand(
+                            "INSERT INTO t_in_sap " &
+                            "(sociedad, numero_cuenta, deudor_acreedor_2, saldo_acum, descripcion_cuenta_sific, asignacion) " &
+                            "VALUES (@soc,@cta,'[ICP None]',0,'Inicial ICP None',@desc);",
+                            conn, tran)
+                            cmdNewBase.Parameters.AddWithValue("@soc", soc)
+                            cmdNewBase.Parameters.AddWithValue("@cta", cta)
+                            cmdNewBase.Parameters.AddWithValue("@desc", "Arraste de saldo diferencial para la cuenta  " & soc & "-" & cta)
+                            cmdNewBase.ExecuteNonQuery()
                         End Using
-
-
-                        ' Ajustar o crear registro ICP None
-                        Dim dtNone As New DataTable()
-                        Using cmdN As New SQLiteCommand(
-                            "SELECT ID, saldo_acum 
-                            FROM t_in_sap 
-                            WHERE LTRIM(sociedad,'0')=@soc AND numero_cuenta=@cta AND deudor_acreedor_2='[ICP None]';", conn, tran)
-                            cmdN.Parameters.AddWithValue("@soc", soc)
-                            cmdN.Parameters.AddWithValue("@cta", cta)
-                            Using daN As New SQLiteDataAdapter(cmdN)
-                                daN.Fill(dtNone)
+                        dtBase.Clear()
+                        Using cmdBase2 As New SQLiteCommand(
+                            "SELECT ID, saldo_acum FROM t_in_sap WHERE rowid = last_insert_rowid();",
+                            conn, tran)
+                            Using da2 As New SQLiteDataAdapter(cmdBase2)
+                                da2.Fill(dtBase)
                             End Using
-                        End Using
-                        If dtNone.Rows.Count > 0 Then
-                            Dim idNone = dtNone.Rows(0).Field(Of Long)("ID")
-                            Dim newNone = dtNone.Rows(0).Field(Of Double)("saldo_acum") + diff
-                            Using cmdUpd2 As New SQLiteCommand("UPDATE t_in_sap SET saldo_acum=@s WHERE ID=@rid;", conn, tran)
-                                cmdUpd2.Parameters.AddWithValue("@s", newNone)
-                                cmdUpd2.Parameters.AddWithValue("@rid", idNone)
-                                cmdUpd2.ExecuteNonQuery()
-                            End Using
-                        Else
-                            ' Clonar original y crear nuevo
-                            Dim colsList = String.Join(",", cols)
-                            Dim paramList = String.Join(",", cols.Select(Function(c) "@" & c))
-                            Dim sqlIns = $"INSERT INTO t_in_sap ({colsList}) VALUES ({paramList});"
-                            Using cmdIns As New SQLiteCommand(sqlIns, conn, tran)
-                                Dim dtOrig As New DataTable()
-                                Using cmdO As New SQLiteCommand("SELECT * FROM t_in_sap WHERE ID=@rid;", conn, tran)
-                                    cmdO.Parameters.AddWithValue("@rid", idExist)
-                                    Using daO As New SQLiteDataAdapter(cmdO)
-                                        daO.Fill(dtOrig)
-                                    End Using
-                                End Using
-                                Dim orig = dtOrig.Rows(0)
-                                For Each col In cols
-                                    cmdIns.Parameters.AddWithValue("@" & col, orig(col))
-                                Next
-                                cmdIns.Parameters.AddWithValue("@deudor_acreedor_2", "[ICP None]")
-                                cmdIns.Parameters.AddWithValue("@saldo_acum", diff)
-                                cmdIns.Parameters.AddWithValue("@descripcion_cuenta_sific",
-                                    "Diferencia generada por integración costo_ingreso_acum")
-                                cmdIns.ExecuteNonQuery()
-                            End Using
-                        End If
-
-                        processedIds.Add(idExist)
-                    Else
-                        ' No existe: insertar nuevo registro
-                        Using cmdNew As New SQLiteCommand(
-    "INSERT INTO t_in_sap (sociedad, numero_cuenta, deudor_acreedor_2, saldo_acum, descripcion_cuenta_sific) VALUES (@soc,@cta,@icp,@monto,@desc);",
-    conn, tran)
-                            cmdNew.Parameters.AddWithValue("@soc", soc)
-                            cmdNew.Parameters.AddWithValue("@cta", cta)
-                            cmdNew.Parameters.AddWithValue("@icp", icp)
-                            cmdNew.Parameters.AddWithValue("@monto", monto)
-                            cmdNew.Parameters.AddWithValue("@desc", "Creado por integración costo_ingreso_acum")
-                            cmdNew.ExecuteNonQuery()
-                            processedIds.Add(conn.LastInsertRowId)
                         End Using
                     End If
-                    ' Remover de la tabla en memoria
-                    dtCI.Rows.RemoveAt(index)
+
+                    Dim baseId = dtBase.Rows(0).Field(Of Long)("ID")
+                    Dim baseSaldo = Math.Round(Convert.ToDouble(dtBase.Rows(0)("saldo_acum")), 2, MidpointRounding.AwayFromZero)
+
+
+                    ' 5.2) Insertar renglón de operación con ICP_ORACLE
+                    Using cmdIns As New SQLiteCommand(
+                        "INSERT INTO t_in_sap " &
+                        "(sociedad, numero_cuenta, deudor_acreedor_2, saldo_acum, asignacion, texto_explicativo, periodo, ejercicio, agrup, 
+                          cuenta_mayor_hfm, descripcion_cuenta_sific, cuenta_oracle, descripcion_cuenta_oracle, referencia) " &
+                        "VALUES (@soc,@cta,@icp,@monto,@desc,@tex_explic,@period,@ejercicio,@agrup,@cta_mayor,@desc_cta_sific,@cta_oracle,@cta_desc_oracle,@TOP);",
+                        conn, tran)
+                        cmdIns.Parameters.AddWithValue("@soc", soc)
+                        cmdIns.Parameters.AddWithValue("@cta", cta)
+                        cmdIns.Parameters.AddWithValue("@icp", icp)
+                        cmdIns.Parameters.AddWithValue("@monto", monto)
+                        cmdIns.Parameters.AddWithValue("@desc", "Integración costo_ingreso_acum  " & soc & "-" & cta & "->" & Convert.ToString(rowCI("CUENTA_ORACLE")))
+                        'campos adiconales para incertar registro nuevo.    
+                        cmdIns.Parameters.AddWithValue("@tex_explic", Convert.ToString(rowCI("servicio_descrip")))
+                        cmdIns.Parameters.AddWithValue("@period", Convert.ToString(rowCI("mes")))
+                        cmdIns.Parameters.AddWithValue("@ejercicio", Convert.ToString(rowCI("year")))
+                        cmdIns.Parameters.AddWithValue("@agrup", Convert.ToString(rowCI("clasifc_cost_ingreso")))
+                        cmdIns.Parameters.AddWithValue("@cta_mayor", Convert.ToString(rowCI("CUENTA_SAP")))
+                        cmdIns.Parameters.AddWithValue("@desc_cta_sific", Convert.ToString(rowCI("descrip_cuenta_sap")))
+                        cmdIns.Parameters.AddWithValue("@cta_oracle", Convert.ToString(rowCI("CUENTA_ORACLE")))
+                        cmdIns.Parameters.AddWithValue("@cta_desc_oracle", Convert.ToString(rowCI("descrip_cuenta_oracle")))
+                        cmdIns.Parameters.AddWithValue("@TOP", "TOP=" & Convert.ToString(rowCI("TOP")))
+                        cmdIns.ExecuteNonQuery()
+                    End Using
+
+                    ' 5.3) Restar del ICP None
+                    Dim restante = baseSaldo - monto
+                    Using cmdUpdBase As New SQLiteCommand(
+                        "UPDATE t_in_sap SET saldo_acum=@rest WHERE ID=@rid;",
+                        conn, tran)
+                        cmdUpdBase.Parameters.AddWithValue("@rest", restante)
+                        cmdUpdBase.Parameters.AddWithValue("@rid", baseId)
+                        cmdUpdBase.ExecuteNonQuery()
+                    End Using
+
+                    ' Eliminar fila procesada de la tabla en memoria
+                    dtCI.Rows.RemoveAt(0)
                 End While
 
                 tran.Commit()
             End Using
         End Using
 
-        MessageBox.Show("Integración completada.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        MessageBox.Show("Integración completada.", "Éxito",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Sub
 
     ''' <summary>
@@ -226,4 +191,5 @@ Public Class integra_costo_ingreso
         If s Is Nothing Then Return s
         Return s.TrimStart("0"c)
     End Function
+
 End Class
